@@ -111,7 +111,7 @@ feed:
   template:
 
 ## Themes: https://hexo.io/themes/
-theme: next
+theme: fluid
 
 # Deployment
 ## Docs: https://hexo.io/docs/one-command-deployment
