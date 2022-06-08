@@ -195,7 +195,7 @@ color:
 
   # 超链接悬浮背景色
   # Color of link background when hovering
-  link_hover_bg_color: "#4954EF"
+  link_hover_bg_color: "#f8f9fa"
   link_hover_bg_color_dark: "#364151"
 
   # 分隔线和表格边线的颜色
@@ -936,7 +936,7 @@ about:
   # More icons can be found from https://hexo.fluid-dev.com/docs/en/icon/  `class` is the css class of the icon. If adding `qrcode`, The icon is no longer a link, but a hovering QR code
   icons:
     - { class: "iconfont icon-github-fill", link: "https://github.com/zhanggin", tip: "GitHub" }
-    - { class: "iconfont icon-mail", link: "mailto:215129113@gmail.com", tip: "发送QQ邮箱"  }
+    - { class: "iconfont icon-mail", link: "mailto:215129113@qq.com", tip: "发送邮件"  }
 
 
 #---------------------------
