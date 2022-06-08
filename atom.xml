@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Gin&#39;s blog</title>
+  <icon>http://example.com/icon.png</icon>
+  
+  <link href="http://example.com/atom.xml" rel="self"/>
+  
+  <link href="http://example.com/"/>
+  <updated>2022-06-08T07:50:09.603Z</updated>
+  <id>http://example.com/</id>
+  
+  <author>
+    <name>Gin</name>
+    
+  </author>
+  
+  <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>配置webpack</title>
+    <link href="http://example.com/2022/05/31/20220531/"/>
+    <id>http://example.com/2022/05/31/20220531/</id>
+    <published>2022-05-31T15:41:22.000Z</published>
+    <updated>2022-06-08T07:50:09.603Z</updated>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;h1 id=&quot;webpack-四个核心概念&quot;&gt;&lt;a href=&quot;#webpack-四个核心概念&quot; class=&quot;headerlink&quot; title=&quot;webpack 四个核心概念&quot;&gt;&lt;/a&gt;webpack</summary>
+        
+      
+    
+    
+    
+    <category term="config" scheme="http://example.com/categories/config/"/>
+    
+    
+    <category term="webpack" scheme="http://example.com/tags/webpack/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>vscode入坑vim指南</title>
+    <link href="http://example.com/2022/05/25/20220525/"/>
+    <id>http://example.com/2022/05/25/20220525/</id>
+    <published>2022-05-25T13:41:23.000Z</published>
+    <updated>2022-06-08T07:50:09.599Z</updated>
+    
+    
+    <summary type="html">&lt;h1 id=&quot;vim-模式&quot;&gt;&lt;a href=&quot;#vim-模式&quot; class=&quot;headerlink&quot; title=&quot;vim 模式&quot;&gt;&lt;/a&gt;vim 模式&lt;/h1&gt;&lt;p&gt;在 Vim 中有 4 种编辑模式，分别是：普通模式、插入模式、可视模式和命令行模式。使用 Vim 进行编辑就需要熟练的在各个模式之间进行切换。&lt;/p&gt;</summary>
+    
+    
+    
+    <category term="config" scheme="http://example.com/categories/config/"/>
+    
+    
+    <category term="vim" scheme="http://example.com/tags/vim/"/>
+    
+    <category term="vscode" scheme="http://example.com/tags/vscode/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>github actions部署nestjs项目到服务器</title>
+    <link href="http://example.com/2022/05/24/20220524/"/>
+    <id>http://example.com/2022/05/24/20220524/</id>
+    <published>2022-05-24T16:24:21.000Z</published>
+    <updated>2022-06-08T07:50:09.599Z</updated>
+    
+    
+    <summary type="html">&lt;h1 id=&quot;更新-ubuntu-软件源&quot;&gt;&lt;a href=&quot;#更新-ubuntu-软件源&quot; class=&quot;headerlink&quot; title=&quot;更新 ubuntu 软件源&quot;&gt;&lt;/a&gt;更新 ubuntu 软件源&lt;/h1&gt;&lt;pre class=&quot;line-numbers language-bash&quot; data-language=&quot;bash&quot;&gt;&lt;code class=&quot;language-bash&quot;&gt;&lt;span class=&quot;token function&quot;&gt;sudo&lt;/span&gt; &lt;span class=&quot;token function&quot;&gt;apt&lt;/span&gt; update&lt;span aria-hidden=&quot;true&quot; class=&quot;line-numbers-rows&quot;&gt;&lt;span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;</summary>
+    
+    
+    
+    <category term="config" scheme="http://example.com/categories/config/"/>
+    
+    
+    <category term="nestjs" scheme="http://example.com/tags/nestjs/"/>
+    
+    <category term="deploy" scheme="http://example.com/tags/deploy/"/>
+    
+  </entry>
+  
+</feed>
