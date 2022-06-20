@@ -12,7 +12,7 @@
     <div class="item">
       <Xicons
         v-if="config.localizedDate"
-        icon="CalendarTime"
+        icon="Clock"
         :text="config.localizedDate"
       ></Xicons>
     </div>
@@ -23,7 +23,7 @@
         <li
           v-for="({ name, path }, index) in config.category"
           :key="index"
-          @click="navigate(path)"
+          @click="$router.push(path)"
         >
           {{ name }}
         </li>
@@ -36,7 +36,7 @@
         <li
           v-for="({ name, path }, index) in config.tag"
           :key="index"
-          @click="navigate(path)"
+          @click="$router.push(path)"
         >
           {{ name }}
         </li>
@@ -47,7 +47,6 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
 
 import type { PropType } from 'vue'
 import type { PageInfo } from 'vuepress-theme-hope'
@@ -70,13 +69,6 @@ const props = defineProps({
     required: true
   }
 })
-
-const route = useRoute()
-const router = useRouter()
-
-const navigate = (path = ''): void => {
-  if (path && route.path !== path) void router.push(path)
-}
 </script>
 
 <style scoped lang="scss">
