@@ -12,6 +12,10 @@ export const localTheme = (options: HopeThemeOptions): Theme => {
     name: 'vuepress-theme-local',
     extends: hopeTheme(options),
     alias: {
+      '@theme-hope/components/AutoLink': path.resolve(
+        __dirname,
+        './components/AutoLink.vue'
+      ),
       '@theme-hope/module/blog/components/BlogHero': path.resolve(
         __dirname,
         './components/BlogHero.vue'

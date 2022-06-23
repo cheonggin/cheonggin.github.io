@@ -18,10 +18,10 @@ export default defineUserConfig({
     darkmode: 'disable',
     editLink: false,
     navbar: [
-      { text: '主页', link: '/' },
-      { text: '分类', link: '/category' },
-      { text: '标签', link: '/tag' },
-      { text: '时间轴', link: '/timeline' }
+      { text: '主页', link: '/', icon: 'Home' },
+      { text: '分类', link: '/category', icon: 'LayoutGrid' },
+      { text: '标签', link: '/tag', icon: 'Tag' },
+      { text: '时间轴', link: '/timeline', icon: 'Clock' }
     ],
     navbarLayout: {
       left: ['Brand'],
