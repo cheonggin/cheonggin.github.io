@@ -1,25 +1,31 @@
 <template>
   <div v-if="showPageInfo" class="page-info">
-    <Xicons v-if="!!author" icon="User" :text="author" />
-    <Xicons v-if="!!date" icon="Clock" :text="date" />
-    <Xicons v-if="!!categories && categories.length > 0" icon="LayoutGrid">
-      <RouterLink
-        v-for="(category, index) in categories"
-        :key="index"
-        :class="['category', { active: currentCategory === category }]"
-        :to="`/categories/${convertToPinyin(category)}/1/`"
-        >{{ category }}</RouterLink
-      >
-    </Xicons>
-    <Xicons v-if="!!tags && tags.length > 0" icon="Tag">
-      <RouterLink
-        v-for="(tag, index) in tags"
-        :key="index"
-        :class="['tag', { active: currentTag === tag }]"
-        :to="`/tags/${convertToPinyin(tag)}/1/`"
-        >{{ tag }}</RouterLink
-      >
-    </Xicons>
+    <div><Xicons v-if="!!author" icon="User" :text="author" /></div>
+    <div><Xicons v-if="!!date" icon="Clock" :text="date" /></div>
+    <div>
+      <Xicons v-if="!!categories && categories.length > 0" icon="LayoutGrid">
+        <RouterLink
+          v-for="(category, index) in categories"
+          :key="index"
+          :class="['category', { active: currentCategory === category }]"
+          :to="`/categories/${convertToPinyin(category)}/1/`"
+        >
+          {{ category }}
+        </RouterLink>
+      </Xicons>
+    </div>
+    <div>
+      <Xicons v-if="!!tags && tags.length > 0" icon="Tag">
+        <RouterLink
+          v-for="(tag, index) in tags"
+          :key="index"
+          :class="['tag', { active: currentTag === tag }]"
+          :to="`/tags/${convertToPinyin(tag)}/1/`"
+        >
+          {{ tag }}
+        </RouterLink>
+      </Xicons>
+    </div>
   </div>
 </template>
 
@@ -67,3 +73,11 @@ const showPageInfo = computed(
     !!(tags.value && tags.value.length > 0)
 )
 </script>
+
+<style lang="scss" scoped>
+.page-info {
+  > div {
+    margin-right: 10px;
+  }
+}
+</style>
