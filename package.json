@@ -11,18 +11,19 @@
   },
   "dependencies": {
     "vuepress": "^2.0.0-beta.48",
-    "vuepress-theme-hope": "^2.0.0-beta.83"
+    "vuepress-theme-reco": "^2.0.0-beta.19"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.0.0",
     "@commitlint/config-conventional": "^17.0.0",
-    "@vicons/tabler": "^0.12.0",
-    "@vuepress/plugin-register-components": "^2.0.0-beta.48",
-    "@vuepress/plugin-search": "^2.0.0-beta.48",
     "commitizen": "^4.2.4",
     "cz-conventional-changelog": "^3.3.0",
     "husky": "^8.0.0",
-    "tailwindcss": "^3.1.3"
+    "vuepress-plugin-comment2": "^2.0.0-beta.84",
+    "vuepress-plugin-copy-code2": "^2.0.0-beta.84",
+    "vuepress-plugin-feed2": "^2.0.0-beta.84",
+    "vuepress-plugin-pwa2": "^2.0.0-beta.84",
+    "vuepress-plugin-sitemap2": "^2.0.0-beta.84"
   },
   "config": {
     "commitizen": {

@@ -1,58 +1,24 @@
-import { hopeTheme } from 'vuepress-theme-hope'
 import { path } from '@vuepress/utils'
-import { registerComponentsPlugin } from '@vuepress/plugin-register-components'
-import { searchPlugin } from '@vuepress/plugin-search'
-import { copyCodePlugin } from 'vuepress-plugin-copy-code2'
-import { pwaPlugin } from 'vuepress-plugin-pwa2'
-import type { HopeThemeOptions } from 'vuepress-theme-hope'
+import { recoTheme } from 'vuepress-theme-reco'
 import type { Theme } from 'vuepress'
 
-export const localTheme = (options: HopeThemeOptions): Theme => {
+export const localTheme = (option): Theme => {
   return {
     name: 'vuepress-theme-local',
-    extends: hopeTheme(options),
+    extends: recoTheme(option),
     alias: {
-      '@theme-hope/components/AutoLink': path.resolve(
+      './Footer.vue': path.resolve(__dirname, './components/Footer.vue'),
+      './PageInfo.vue': path.resolve(__dirname, './components/PageInfo.vue'),
+      './Blog.vue': path.resolve(__dirname, './components/Blog.vue'),
+      './PostItem.vue': path.resolve(__dirname, './components/PostItem.vue'),
+      '../components/Page.vue': path.resolve(
         __dirname,
-        './components/AutoLink.vue'
+        './components/Page.vue'
       ),
-      '@theme-hope/module/blog/components/BlogHero': path.resolve(
+      './NavbarLinks.vue': path.resolve(
         __dirname,
-        './components/BlogHero.vue'
-      ),
-      '@theme-hope/module/blog/components/BloggerInfo': path.resolve(
-        __dirname,
-        './components/BloggerInfo.vue'
-      ),
-      '@theme-hope/module/blog/components/InfoList': path.resolve(
-        __dirname,
-        './components/InfoList.vue'
-      ),
-      '@theme-hope/module/info/components/PageInfo': path.resolve(
-        __dirname,
-        './components/PageInfo.vue'
-      ),
-      '@theme-hope/module/blog/components/ArticleList': path.resolve(
-        __dirname,
-        './components/ArticleList.vue'
-      ),
-      '@theme-hope/module/blog/components/ArticleItem': path.resolve(
-        __dirname,
-        './components/ArticleItem.vue'
+        './components/NavbarLinks.vue'
       )
-    },
-    plugins: [
-      registerComponentsPlugin({
-        components: {
-          Xicons: path.resolve(__dirname, './components/Xicons.vue')
-        }
-      }),
-      searchPlugin({ hotKeys: [{ key: 'meta' }, { key: 'k' }] }),
-      copyCodePlugin({
-        selector: '.theme-container div[class*="language-"] pre',
-        showInMobile: true
-      }),
-      pwaPlugin({})
-    ]
+    }
   }
 }

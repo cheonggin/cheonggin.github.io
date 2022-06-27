@@ -1,108 +1,69 @@
 <template>
-  <div class="page-info">
-    <div class="item">
-      <Xicons icon="User"></Xicons>
-      <ul>
-        <li v-for="(item, index) in config.author" :key="index">
-          {{ item.name }}
-        </li>
-      </ul>
-    </div>
-
-    <div class="item">
-      <Xicons
-        v-if="config.localizedDate"
-        icon="Clock"
-        :text="config.localizedDate"
-      ></Xicons>
-    </div>
-
-    <div class="item">
-      <Xicons v-if="config.category.length" icon="LayoutGrid"></Xicons>
-      <ul>
-        <li
-          v-for="({ name, path }, index) in config.category"
-          :key="index"
-          @click="$router.push(path)"
-        >
-          {{ name }}
-        </li>
-      </ul>
-    </div>
-
-    <div class="item">
-      <Xicons v-if="config.tag.length" icon="Tag"></Xicons>
-      <ul>
-        <li
-          v-for="({ name, path }, index) in config.tag"
-          :key="index"
-          @click="$router.push(path)"
-        >
-          {{ name }}
-        </li>
-      </ul>
-    </div>
+  <div v-if="showPageInfo" class="page-info">
+    <Xicons v-if="!!author" icon="User" :text="author" />
+    <Xicons v-if="!!date" icon="Clock" :text="date" />
+    <Xicons v-if="!!categories && categories.length > 0" icon="LayoutGrid">
+      <RouterLink
+        v-for="(category, index) in categories"
+        :key="index"
+        :class="['category', { active: currentCategory === category }]"
+        :to="`/categories/${convertToPinyin(category)}/1/`"
+        >{{ category }}</RouterLink
+      >
+    </Xicons>
+    <Xicons v-if="!!tags && tags.length > 0" icon="Tag">
+      <RouterLink
+        v-for="(tag, index) in tags"
+        :key="index"
+        :class="['tag', { active: currentTag === tag }]"
+        :to="`/tags/${convertToPinyin(tag)}/1/`"
+        >{{ tag }}</RouterLink
+      >
+    </Xicons>
   </div>
 </template>
 
-<script setup lang="ts">
-import { computed } from 'vue'
-
-import type { PropType } from 'vue'
-import type { PageInfo } from 'vuepress-theme-hope'
+<script lang="ts" setup>
+import { computed, toRefs } from 'vue'
+import { useThemeLocaleData } from '@vuepress/plugin-theme-data/lib/client'
+import { convertToPinyin } from '@vuepress-reco/shared'
 
 const props = defineProps({
-  items: {
-    type: [Array, Boolean] as PropType<PageInfo[] | false>,
-    default: (): PageInfo[] => [
-      'Author',
-      'Original',
-      'Date',
-      'Category',
-      'Tag',
-      'ReadingTime'
-    ]
+  pageData: {
+    type: Object,
+    default: () => ({})
   },
-
-  config: {
-    type: Object as PropType<PageInfoProps>,
-    required: true
+  currentCategory: {
+    type: String,
+    default: ''
+  },
+  currentTag: {
+    type: String,
+    default: ''
   }
 })
+
+const { pageData } = toRefs(props)
+const themeData = useThemeLocaleData()
+const author = computed(
+  () => pageData?.value?.frontmatter?.author || themeData.value.author || ''
+)
+
+const date = computed(() => {
+  return pageData?.value?.date || ''
+})
+
+const categories = computed(
+  () => pageData?.value?.frontmatter?.categories || []
+)
+
+const tags = computed(() => pageData?.value?.frontmatter?.tags || [])
+
+const showPageInfo = computed(
+  () =>
+    !!author.value ||
+    !!date.value ||
+    !!(categories.value && categories.value.length > 0) ||
+    !!(tags.value && tags.value.length > 0)
+)
 </script>
-
-<style scoped lang="scss">
-.page-info {
-  @apply flex flex-wrap;
-  align-items: center;
-  margin-top: 0.5rem;
-
-  .item {
-    display: flex;
-    font-size: 14px;
-    font-weight: 500;
-    &:not(:last-child) {
-      @apply mr-5;
-    }
-  }
-
-  ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: inline-flex;
-
-    li {
-      cursor: pointer;
-
-      &:hover {
-        @apply text-brand;
-      }
-
-      &:not(:last-child) {
-        @apply mr-2;
-      }
-    }
-  }
-}
-</style>

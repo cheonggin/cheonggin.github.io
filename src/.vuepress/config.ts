@@ -1,7 +1,10 @@
 import { defineUserConfig } from 'vuepress'
-import { viteBundler } from '@vuepress/bundler-vite'
+import { copyCodePlugin } from 'vuepress-plugin-copy-code2'
+import { commentPlugin } from 'vuepress-plugin-comment2'
+import { pwaPlugin } from 'vuepress-plugin-pwa2'
+import { feedPlugin } from 'vuepress-plugin-feed2'
+import { sitemapPlugin } from 'vuepress-plugin-sitemap2'
 import { localTheme } from './theme'
-import type { HopeThemeOptions } from 'vuepress-theme-hope'
 
 export default defineUserConfig({
   lang: 'zh-CN',
@@ -10,46 +13,20 @@ export default defineUserConfig({
   dest: 'dist',
   shouldPrefetch: false,
   theme: localTheme({
-    hostname: 'https://www.zhanggin.work/',
     author: 'Gin',
     logo: 'https://img.zhanggin.work/avatar.jpg',
-    sidebar: 'heading',
-    sidebarIcon: false,
-    darkmode: 'disable',
-    editLink: false,
-    navbar: [
-      { text: '主页', link: '/', icon: 'Home' },
-      { text: '分类', link: '/category', icon: 'LayoutGrid' },
-      { text: '标签', link: '/tag', icon: 'Tag' },
-      { text: '时间轴', link: '/timeline', icon: 'Clock' }
-    ],
-    navbarLayout: {
-      left: ['Brand'],
-      center: [],
-      right: ['Search', 'Links']
-    },
-    blog: {
-      description: '一直在努力成为一个不需要努力也能幸福的人',
-      socialLinks: [
-        { icon: 'MailForward', link: 'mailto:215129113@qq.com' },
-        { icon: 'BrandGithub', link: 'https://github.com/zhanggin' }
-      ]
-    },
-    plugins: {
-      blog: true,
-      comment: {
-        provider: 'Waline',
-        serverURL: 'valine.zhanggin.work'
-      }
-    }
-  } as HopeThemeOptions),
-  bundler: viteBundler({
-    viteOptions: {
-      css: {
-        postcss: {
-          plugins: [require('tailwindcss'), require('autoprefixer')]
-        }
-      }
-    }
-  })
+    authorAvatar: 'https://img.zhanggin.work/avatar.jpg',
+    autoAddCategoryToNavbar: true,
+    lastUpdatedText: '最后更新时间为：'
+  }),
+  plugins: [
+    copyCodePlugin({
+      selector: '.theme-reco-default-content div[class*="language-"] pre',
+      showInMobile: true
+    }),
+    commentPlugin({ provider: 'Waline', serverURL: 'valine.zhanggin.work' }),
+    pwaPlugin({}),
+    feedPlugin({ hostname: 'https://www.zhanggin.work/', rss: true }),
+    sitemapPlugin({ hostname: 'https://www.zhanggin.work/' })
+  ]
 })
