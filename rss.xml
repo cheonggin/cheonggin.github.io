@@ -1,0 +1,1328 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <atom:link href="https://www.zhanggin.work/rss.xml" rel="self" type="application/rss+xml"/>
+    <title>Gin's blog</title>
+    <link>https://www.zhanggin.work/</link>
+    <description>Gin's blog</description>
+    <language>zh-CN</language>
+    <pubDate>Mon, 27 Jun 2022 03:02:12 GMT</pubDate>
+    <lastBuildDate>Mon, 27 Jun 2022 03:02:12 GMT</lastBuildDate>
+    <generator>vuepress-plugin-feed2</generator>
+    <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
+    <category>config</category>
+    <category>前端</category>
+    <item>
+      <title>github actions部署nestjs项目到服务器</title>
+      <link>https://www.zhanggin.work/docs/20220524.html</link>
+      <guid>https://www.zhanggin.work/docs/20220524.html</guid>
+      <source url="https://www.zhanggin.work/rss.xml">github actions部署nestjs项目到服务器</source>
+      <category>config</category>
+      <pubDate>Tue, 24 May 2022 00:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<h2 id="更新-ubuntu-软件源" tabindex="-1"> 更新 ubuntu 软件源</h2>
+<div><pre><code><span>sudo</span> <span>apt</span> update
+</code></pre><div aria-hidden="true"><div></div></div></div><div><pre><code><span>sudo</span> <span>apt</span> upgrade -y
+</code></pre><div aria-hidden="true"><div></div></div></div><h2 id="安装软件" tabindex="-1"> 安装软件</h2>
+<h3 id="安装-node" tabindex="-1"> 安装 node</h3>
+<div><pre><code><span>sudo</span> <span>apt</span> <span>install</span> nodejs -y
+</code></pre><div aria-hidden="true"><div></div></div></div><div><pre><code><span>sudo</span> <span>apt</span> <span>install</span> <span>npm</span> -y
+</code></pre><div aria-hidden="true"><div></div></div></div><h4 id="npm-设置淘宝源" tabindex="-1"> npm 设置淘宝源</h4>
+<div><pre><code><span>sudo</span> <span>npm</span> config <span>set</span> registry https://registry.npm.taobao.org
+</code></pre><div aria-hidden="true"><div></div></div></div><h4 id="全局安装-pm2、n" tabindex="-1"> 全局安装 pm2、n</h4>
+<div><pre><code><span>sudo</span> <span>npm</span> i pm2 n -g
+</code></pre><div aria-hidden="true"><div></div></div></div><h4 id="更新-node-版本为最新的-lts" tabindex="-1"> 更新 node 版本为最新的 lts</h4>
+<div><pre><code><span>sudo</span> n lts
+</code></pre><div aria-hidden="true"><div></div></div></div><h3 id="安装-nginx" tabindex="-1"> 安装 nginx</h3>
+<div><pre><code><span>sudo</span> <span>apt</span> <span>install</span> nginx -y
+</code></pre><div aria-hidden="true"><div></div></div></div><h3 id="安装-mysql" tabindex="-1"> 安装 mysql</h3>
+<div><pre><code><span>sudo</span> <span>apt</span> <span>install</span> mysql-server -y
+</code></pre><div aria-hidden="true"><div></div></div></div><h4 id="检查-mysql-是否正常启动" tabindex="-1"> 检查 MySQL 是否正常启动</h4>
+<div><pre><code>systemctl status mysql
+</code></pre><div aria-hidden="true"><div></div></div></div><h4 id="初始化" tabindex="-1"> 初始化</h4>
+<div><pre><code><span>sudo</span> mysql_secure_installation
+</code></pre><div aria-hidden="true"><div></div></div></div><h2 id="配置-ssh-deploy" tabindex="-1"> 配置 ssh deploy</h2>
+<p>在服务器生成密钥</p>
+<div><pre><code>ssh-keygen -m PEM -t rsa -b <span>4096</span>
+</code></pre><div aria-hidden="true"><div></div></div></div><p>将公钥保存到<code>authorized_keys</code>文件中</p>
+<div><pre><code><span>sudo</span> <span>cp</span> ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys
+</code></pre><div aria-hidden="true"><div></div></div></div><h2 id="设置-secrets" tabindex="-1"> 设置 Secrets</h2>
+<p>在服务器创建存放项目的文件夹，给文件夹所有权限</p>
+<div><pre><code><span>sudo</span> <span>chown</span> -R 用户名 文件夹名称
+</code></pre><div aria-hidden="true"><div></div></div></div><ol>
+<li><code>SSH_PRIVATE_KEY</code>：服务器私钥</li>
+<li><code>REMOTE_HOST</code>：服务器 ip 或域名</li>
+<li><code>REMOTE_USER</code>：服务器登录用户名</li>
+<li><code>REMOTE_PASSWORD</code>：服务器登录密码</li>
+<li><code>TARGET</code>：打包后的文件存放在服务器哪个目录下</li>
+</ol>
+<h2 id="编写-workflow-文件" tabindex="-1"> 编写 workflow 文件</h2>
+<p>创建<code>.github/workflows/deploy.yml</code>文件，配置如下：</p>
+<div><pre><code><span>name</span><span>:</span> Deploy
+
+<span># 触发条件：在 push 到 main 分支后</span>
+<span>on</span><span>:</span>
+  <span>push</span><span>:</span>
+    <span>branches</span><span>:</span>
+      <span>-</span> main
+
+<span># 任务</span>
+<span>jobs</span><span>:</span>
+  <span>build-and-deploy</span><span>:</span>
+    <span># 服务器环境：最新版 Ubuntu</span>
+    <span>runs-on</span><span>:</span> ubuntu<span>-</span>latest
+    <span>strategy</span><span>:</span>
+      <span>matrix</span><span>:</span>
+        <span>node-version</span><span>:</span> <span>[</span>16.x<span>]</span>
+
+    <span>steps</span><span>:</span>
+      <span>-</span> <span>uses</span><span>:</span> actions/checkout@v3
+      <span>-</span> <span>name</span><span>:</span> Use Node.js $<span>{</span><span>{</span> matrix.node<span>-</span>version <span>}</span><span>}</span>
+        <span>uses</span><span>:</span> actions/setup<span>-</span>node@v3
+        <span>with</span><span>:</span>
+          <span>node-version</span><span>:</span> $<span>{</span><span>{</span> matrix.node<span>-</span>version <span>}</span><span>}</span>
+          <span>cache</span><span>:</span> <span>'npm'</span>
+
+      <span>-</span> <span>name</span><span>:</span> build
+        <span>run</span><span>:</span> npm i <span>&amp;&amp;</span> npm run build
+
+      <span>-</span> <span>name</span><span>:</span> Deploy To Server
+        <span>uses</span><span>:</span> easingthemes/ssh<span>-</span>deploy@main
+        <span>env</span><span>:</span>
+          <span>SSH_PRIVATE_KEY</span><span>:</span> $<span>{</span><span>{</span> secrets.SSH_PRIVATE_KEY <span>}</span><span>}</span>
+          <span>ARGS</span><span>:</span> <span>'-rltgoDzvO --delete'</span>
+          <span>SOURCE</span><span>:</span> <span>'dist/'</span>
+          <span>REMOTE_HOST</span><span>:</span> $<span>{</span><span>{</span> secrets.REMOTE_HOST <span>}</span><span>}</span>
+          <span>REMOTE_USER</span><span>:</span> $<span>{</span><span>{</span> secrets.REMOTE_USER <span>}</span><span>}</span>
+          <span>TARGET</span><span>:</span> $<span>{</span><span>{</span> secrets.TARGET <span>}</span><span>}</span>
+
+      <span>-</span> <span>name</span><span>:</span> copy file via ssh password
+        <span>uses</span><span>:</span> appleboy/scp<span>-</span>action@master
+        <span>with</span><span>:</span>
+          <span>host</span><span>:</span> $<span>{</span><span>{</span> secrets.REMOTE_HOST <span>}</span><span>}</span>
+          <span>username</span><span>:</span> $<span>{</span><span>{</span> secrets.REMOTE_USER <span>}</span><span>}</span>
+          <span>password</span><span>:</span> $<span>{</span><span>{</span> secrets.REMOTE_PASSWORD <span>}</span><span>}</span>
+          <span>port</span><span>:</span> $<span>{</span><span>{</span> secrets.REMOTE_PORT <span>}</span><span>}</span>
+          <span>source</span><span>:</span> <span>'package.json'</span>
+          <span>target</span><span>:</span> $<span>{</span><span>{</span> secrets.TARGET <span>}</span><span>}</span>
+          <span>overwrite</span><span>:</span> <span>true</span>
+
+      <span>-</span> <span>name</span><span>:</span> executing remote ssh commands using password
+        <span>uses</span><span>:</span> appleboy/ssh<span>-</span>action@master
+        <span>with</span><span>:</span>
+          <span>host</span><span>:</span> $<span>{</span><span>{</span> secrets.REMOTE_HOST <span>}</span><span>}</span>
+          <span>username</span><span>:</span> $<span>{</span><span>{</span> secrets.REMOTE_USER <span>}</span><span>}</span>
+          <span>password</span><span>:</span> $<span>{</span><span>{</span> secrets.REMOTE_PASSWORD <span>}</span><span>}</span>
+          <span>port</span><span>:</span> $<span>{</span><span>{</span> secrets.REMOTE_PORT <span>}</span><span>}</span>
+          <span>script</span><span>:</span> <span>|</span><span>
+            rm -rf /workspace/mall/public
+            cp /workspace/.env /workspace/mall
+            cp -r /workspace/public /workspace/mall/apps/
+            cd /workspace/mall
+            npm i
+            pm2 delete mangement
+            pm2 delete web
+            pm2 start /workspace/mall/apps/mangement/main.js --name=mangement
+            pm2 start /workspace/mall/apps/web/main.js --name=web
+            pm2 save</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h2 id="配置-nginx" tabindex="-1"> 配置 nginx</h2>
+<p>去<a href="https://www.digitalocean.com/community/tools/nginx?domains.0.php.php=false&amp;domains.0.reverseProxy.reverseProxy=true&amp;domains.0.routing.root=false&amp;global.app.lang=zhCN" target="_blank" rel="noopener noreferrer">NGINXCONFIG</a> 配置 nginx</p>
+<p>在 vscode 中安装<code>remote-ssh</code>插件，连接服务器</p>
+<p>给<code>/etc/nginx</code>文件夹权限</p>
+<div><pre><code><span>sudo</span> <span>chown</span> -R 用户名 /etc/nginx
+</code></pre><div aria-hidden="true"><div></div></div></div><p>将配置好的 nginx 文件下载下来，上传到服务器<code>/etc/nginx</code></p>
+<p>创建当前 NGINX 配置的<strong>备份</strong>：</p>
+<div><pre><code><span>tar</span> -czvf nginx_<span><span>$(</span><span>date</span> +<span>'%F_%H-%M-%S'</span><span>)</span></span>.tar.gz nginx.conf sites-available/ sites-enabled/ nginxconfig.io/
+</code></pre><div aria-hidden="true"><div></div></div></div><p>使用 tar<strong>解压</strong>新的压缩配置：</p>
+<div><pre><code><span>sudo</span> <span>tar</span> -xzvf 配置文件夹名称 <span>|</span> <span>xargs</span> <span>chmod</span> 0644
+</code></pre><div aria-hidden="true"><div></div></div></div><p>如果使用 https，则在<code>/etc/nginx</code>目录下生成<code>dhparam.pem</code></p>
+<div><pre><code><span>sudo</span> openssl dhparam -out dhparam.pem <span>2048</span>
+</code></pre><div aria-hidden="true"><div></div></div></div><p>重启 nginx 使配置生效：</p>
+<div><pre><code><span>sudo</span> nginx -s stop
+</code></pre><div aria-hidden="true"><div></div></div></div><div><pre><code><span>sudo</span> nginx -c /etc/nginx/nginx.conf
+</code></pre><div aria-hidden="true"><div></div></div></div><div><pre><code><span>sudo</span> nginx -s reload
+</code></pre><div aria-hidden="true"><div></div></div></div>]]></content:encoded>
+    </item>
+    <item>
+      <title>vscode入坑vim指南</title>
+      <link>https://www.zhanggin.work/docs/20220525.html</link>
+      <guid>https://www.zhanggin.work/docs/20220525.html</guid>
+      <source url="https://www.zhanggin.work/rss.xml">vscode入坑vim指南</source>
+      <category>config</category>
+      <pubDate>Wed, 25 May 2022 00:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<h2 id="vim-模式" tabindex="-1"> vim 模式</h2>
+<p>在 Vim 中有 4 种编辑模式，分别是：普通模式、插入模式、可视模式和命令行模式。使用 Vim 进行编辑就需要熟练的在各个模式之间进行切换。</p>
+<p><img src="@source/docs/20220525/2022-05-25-13-48-06.png" alt=""></p>
+<h2 id="普通模式" tabindex="-1"> 普通模式</h2>
+<h3 id="移动光标" tabindex="-1"> 移动光标</h3>
+<p>一般情况下每次进入编辑器的时候默认为普通模式，普通模式下常用的用于移动光标的命令：</p>
+<ul>
+<li><code>h/j/k/l</code>：分别代表着向左，下，上，右的方向移动</li>
+<li><code>w/b</code>：跳到下一个单词开头/跳到本单词或上一个单词开头</li>
+<li><code>e/ge</code>：跳到本单词或下一个单词结尾/跳到上一个单词结尾</li>
+<li><code>^</code>：跳到行首开始第一个非空字符串</li>
+<li><code>gg</code>：跳到第一行</li>
+<li><code>G</code>：跳到最后一行</li>
+<li><code>nG/:n</code> ：跳到第 n 行</li>
+<li><code>f{char}/F{char}</code>：跳到下一个字符为 char 的位置/跳到上一个字符为 char 的位置</li>
+<li><code>t{char}/T{char}</code>：跳到下一个字符为 char 的前一个字符的位置/跳到上一个字符为 char 的后一个字符的位置</li>
+<li><code>;</code>：重复上次的字符查找操作</li>
+<li><code>,</code>：反向查找上次的查找命令</li>
+<li><code>dd</code>：删除并复制光标当前行</li>
+<li><code>yy</code>：复制光标当前行</li>
+<li><code>H</code>：跳转到屏幕的顶部</li>
+<li><code>M</code>：跳转到屏幕的中间</li>
+<li><code>L</code>：跳转到屏幕的底部</li>
+<li><code>(</code>：跳转到上一个句子</li>
+<li><code>)</code>：跳转到下一个句子</li>
+<li><code>{</code>：跳转到上一个段落</li>
+<li><code>}</code>：跳转到下一个段落</li>
+<li><code>u</code>：撤消</li>
+<li><code>Ctrl + r</code>：恢复撤销</li>
+<li><code>p</code>：粘贴</li>
+<li><code>x</code>：删除当前光标所在的字符</li>
+<li><code>r</code>：替换当前光标所在的字符</li>
+<li><code>/{char}</code>：查找字符</li>
+</ul>
+<p><img src="@source/docs/20220525/2022-05-25-14-14-28.png" alt=""></p>
+<p><img src="@source/docs/20220525/2022-05-25-14-15-31.png" alt=""></p>
+<h2 id="插入模式" tabindex="-1"> 插入模式</h2>
+<p>在插入模式我们能够进行插入字符、换行等操作。从普通模式进入插入模式有许多种方式：</p>
+<ul>
+<li><code>i</code>：在光标的前面进行插入</li>
+<li><code>I</code>：在行首进行插入，相当于<code>^i</code></li>
+<li><code>a</code>：在光标的后面进行插入</li>
+<li><code>A</code>：在行尾进行插入，相当于<code>$a</code></li>
+<li><code>o</code>：在光标所在行后面插入新一行</li>
+<li><code>O</code>：在光标所在行前面插入新一行，相当于<code>ko</code></li>
+</ul>
+<p><img src="@source/docs/20220525/2022-05-25-14-23-39.png" alt=""></p>
+<p>通过<code>Esc</code>或<code>ctrl + [</code>可以从插入模式切换到普通模式</p>
+<h2 id="可视模式" tabindex="-1"> 可视模式</h2>
+<p>在普通模式里面我们可以使用<code>v</code>进入可视模式，在可视模式中允许我们通过普通模式中移动光标的方式来选中某一段内容进行操作。</p>
+<h2 id="命令模式" tabindex="-1"> 命令模式</h2>
+<p>在普通模式中我们输入<code>:</code>会进入命令模式，在命令模式中我们可以使用与 shell 下的命令行类似的命令</p>
+<p>常用命令：</p>
+<ul>
+<li><code>:wq</code>：保存并退出</li>
+<li><code>:q!</code>：强制退出</li>
+</ul>
+<h2 id="操作符" tabindex="-1"> 操作符</h2>
+<p>常用操作：</p>
+<ul>
+<li><code>d</code>：删除并复制</li>
+<li><code>c</code>：修改，删除并进入插入模式</li>
+<li><code>y</code>：复制</li>
+</ul>
+<h2 id="文本对象" tabindex="-1"> 文本对象</h2>
+<p>文本对象能够让我们不移动光标的情况下来操作一定区域内的内容。比如：</p>
+<ul>
+<li><code>i&quot;</code>：选中双引号内的内容不包含双引号</li>
+<li><code>a&quot;</code>：选中双引号内的内容包含双引号</li>
+</ul>
+<p><img src="@source/docs/20220525/2022-05-25-14-45-52.png" alt=""></p>
+<h2 id="操作符跟文本对象的结合使用" tabindex="-1"> 操作符跟文本对象的结合使用</h2>
+<p>结合跳转的一些例子：</p>
+<ul>
+<li><code>dw</code>：删除当前位置到下一个单词的开头</li>
+<li><code>c}</code>：修改当前位置到这个段落的结尾</li>
+<li><code>d(</code>：删除到句子的开头</li>
+</ul>
+<p>结合数字的一些例子：</p>
+<ul>
+<li><code>y2h</code>：向左拷贝两个字符</li>
+<li><code>d2w</code>：删除后两个单词</li>
+<li><code>c2j</code>：修改后面两行</li>
+</ul>
+<p>结合 i 和 a 的一些例子：</p>
+<ul>
+<li><code>di(</code>：删除括号内的内容</li>
+<li><code>di{</code>：删除大括号内的内容</li>
+<li><code>diw</code>：删除光标所在的单词</li>
+<li><code>da(</code>：删除括号和括号内的内容</li>
+<li><code>da{</code>：删除大括号和大括号内的内容</li>
+<li><code>daw</code>：删除光标所有的单词以及周围的空白</li>
+<li><code>df{char}</code>：删除到下一个 char 字符，包含 char 字符</li>
+<li><code>dt{char}</code>：从当前位置删除到某个字符前为止，不包含 char 字符</li>
+</ul>
+<h2 id="切换大小写" tabindex="-1"> 切换大小写</h2>
+<ul>
+<li><code>~</code>：将光标下的字母改变大小写</li>
+<li><code>3~</code>：将光标位置开始的 3 个字母改变大小写</li>
+<li><code>g~~</code>：改变当前行字母的大小写</li>
+<li><code>gUU</code>：将当前行字母改成大写</li>
+<li><code>guu</code>：将当前行字母改成小写</li>
+<li><code>gUaw(gUiw)</code>：将光标下的单词改成大写</li>
+<li><code>guaw(guiw)</code>：将光标下的单词改成小写</li>
+</ul>
+<h2 id="vim-surround" tabindex="-1"> vim-surround</h2>
+<p>以<code>hello world</code>为例</p>
+<ul>
+<li>给<code>hello</code>加单引号，<code>ysiw'</code></li>
+<li>将 hello 单词的引号改为<code>()</code>，<code>cs'(</code></li>
+<li>将 hello 单词的<code>()</code>改为 html 的 h1 标签，<code>cs(t</code>后输入 h1 标签按回车</li>
+<li>将 hello 单词的<code>h1</code>标签删除，<code>dst</code></li>
+<li>给 hello world 加单引号，<code>yss'</code></li>
+</ul>
+<h2 id="替换" tabindex="-1"> 替换</h2>
+<ul>
+<li><code>:%s/class/className/g</code>：全局搜索 class 替换为 className</li>
+<li><code>:5,12s/class/className/g</code>：从第 5 行到第 12 行替换 class 为 className</li>
+</ul>
+<h2 id="用-vscode-开发中常用的操作" tabindex="-1"> 用 VSCode 开发中常用的操作</h2>
+<h3 id="函数定义之类" tabindex="-1"> 函数定义之类：</h3>
+<ul>
+<li><code>gd</code>：进入函数定义</li>
+<li><code>Ctrl+o</code>：从函数定义中返回</li>
+<li><code>gh</code>：查看函数参数等信息</li>
+</ul>
+<h3 id="切换标签页" tabindex="-1"> 切换标签页：</h3>
+<ul>
+<li><code>gt</code>：切换到下一个标签页</li>
+<li><code>gT</code>：切换到上一个标签页</li>
+<li><code>4gt</code>：切换到第 4 个标签页</li>
+</ul>
+<p>其他：可以使用<code>Ctrl + 0</code>来将光标从编辑器跳转到文件栏，在文件栏可以使用 j 和 k 进行移动，可以使用 Space 展开或者关闭文件夹，使用 l 可以将光标选中的文件在编辑器中打开。</p>
+<p>还有如果使用侧边栏打开文件，可以使用 Ctrl + 1 跟 Ctrl + 2 实现跳转。</p>
+<h3 id="窗口管理" tabindex="-1"> 窗口管理</h3>
+<ul>
+<li><code>:vs</code>：左右分屏</li>
+<li><code>zc</code>：折叠代码块</li>
+<li><code>zo</code>：展开代码块</li>
+</ul>
+]]></content:encoded>
+    </item>
+    <item>
+      <title>配置webpack</title>
+      <link>https://www.zhanggin.work/docs/20220531.html</link>
+      <guid>https://www.zhanggin.work/docs/20220531.html</guid>
+      <source url="https://www.zhanggin.work/rss.xml">配置webpack</source>
+      <category>config</category>
+      <pubDate>Tue, 31 May 2022 00:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<h2 id="webpack-四个核心概念" tabindex="-1"> webpack 四个核心概念</h2>
+<ul>
+<li>Entry：入口起点(entry point)指示 webpack 应该使用哪个模块，来作为构建其内部依赖图的开始</li>
+<li>Output：output 属性告诉 webpack 在哪里输出它所创建的 bundles，以及如何命名这些文件，默认值为 ./dist</li>
+<li>Loader：loader 让 webpack 能够去处理那些非 JavaScript 文件，如 css、png、ts 等等（webpack 自身只能解析： JavaScript、json）</li>
+<li>Plugins：插件则可以用于执行范围更广的任务。插件的范围包括，从打包优化和压缩，一直到重新定义环境中的变量等</li>
+</ul>
+<p>Webpack 本身只能加载 JS/JSON 模块，如果要加载其他类型的文件(模块)，就需要使用对应的 loader 进行转换/加载</p>
+<p>Loader 本身也是运行在 node.js 环境中的 JavaScript 模块，它本身是一个函数，接受源文件作为参数，返回转换的结果。</p>
+<p>loader 一般以 xxx-loader 的方式命名，xxx 代表了这个 loader 要做的转换功能，比如 sass-loader</p>
+<p>插件件可以完成一些 loader 不能完成的功能，插件的使用一般是在 webpack 的配置信息 plugins 选项中指定</p>
+<p>结论：</p>
+<ul>
+<li>webpack 能够编译打包 js 和 json 文件</li>
+<li>能将 es6 的模块化语法转换成浏览器能识别的语法</li>
+<li>能压缩代码</li>
+</ul>
+<p>缺点：</p>
+<ul>
+<li>不能编译打包 css、img 等文件</li>
+<li>不能将 js 的 es6 基本语法转化为 es5 以下语法</li>
+</ul>
+<p>改善：使用 webpack 配置文件解决，自定义功能</p>
+<h2 id="基本配置" tabindex="-1"> 基本配置</h2>
+<h3 id="入口及出口配置" tabindex="-1"> 入口及出口配置</h3>
+<p>创建<code>webpack-study</code>文件夹，在文件夹根目录下依次执行以下命令：</p>
+<div><pre><code>npm init -y
+npm i webpack webpack-cli -g
+npm i webpack webpack-cli -D
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div></div></div><p>在<code>package.json</code>文件中添加<code>scripts</code>命令：</p>
+<div><pre><code><span>"scripts"</span><span>:</span> <span>{</span>
+  <span>"build"</span><span>:</span> <span>"webpack"</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div></div></div><p>在根目录下新建<code>webpack.config.js</code>文件，在这个文件下配置 webpack</p>
+<div><pre><code><span>const</span> path <span>=</span> <span>require</span><span>(</span><span>'path'</span><span>)</span>
+
+module<span>.</span>exports <span>=</span> <span>{</span>
+  <span>// 模式，默认为production，不填写打包时会有warning</span>
+  <span>mode</span><span>:</span> <span>'development'</span><span>,</span>
+
+  <span>// 入口文件 index.js</span>
+  <span>entry</span><span>:</span> <span>'./src/js/index.js'</span><span>,</span>
+
+  <span>// 输出</span>
+  <span>output</span><span>:</span> <span>{</span>
+    <span>// 打包后的输出目录</span>
+    <span>path</span><span>:</span> path<span>.</span><span>resolve</span><span>(</span>__dirname<span>,</span> <span>'./dist'</span><span>)</span><span>,</span>
+    <span>// 打包后的文件名</span>
+    <span>filename</span><span>:</span> <span>'js/main.js'</span><span>,</span>
+    <span>// 打包后自动清除旧的输出目录</span>
+    <span>clean</span><span>:</span> <span>true</span>
+  <span>}</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p>在根目录下新建<code>src/js/sum.js</code>文件</p>
+<div><pre><code><span>export</span> <span>function</span> <span>useSum</span><span>(</span><span>a<span>,</span> b</span><span>)</span> <span>{</span>
+  <span>return</span> a <span>+</span> b
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div></div></div><p>在根目录下新建<code>src/js/index.js</code>文件，这个文件为入口文件</p>
+<div><pre><code><span>import</span> <span>{</span> useSum <span>}</span> <span>from</span> <span>'./sum'</span>
+
+console<span>.</span><span>log</span><span>(</span><span>'我是main.js'</span><span>)</span>
+
+console<span>.</span><span>log</span><span>(</span><span>useSum</span><span>(</span><span>2</span><span>,</span> <span>8</span><span>)</span><span>)</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div></div></div><p>在根目录下新建<code>public/index.html</code>，用于引入打包后的 js 文件</p>
+<div><pre><code><span><span><span>&lt;</span>script</span> <span>src</span><span><span>=</span><span>"</span>../dist/js/main.js<span>"</span></span><span>></span></span><span></span><span><span><span>&lt;/</span>script</span><span>></span></span>
+</code></pre><div aria-hidden="true"><div></div></div></div><p>之后执行<code>npm run build</code>来打包，打开 html 文件查看控制台</p>
+<h3 id="文件的命名规则" tabindex="-1"> 文件的命名规则</h3>
+<p>有时候我们处理后的文件名称按照一定的规则进行显示，比如保留原来的文件名、扩展名，同时为了防止重复，包含一个 hash 值等。</p>
+<p>这个时候我们可以使用 PlaceHolders 来完成，webpack 给我们提供了大量的 PlaceHolders 来显示不同的内容，我们可以在<a href="https://webpack.js.org/loaders/file-loader/#placeholders" target="_blank" rel="noopener noreferrer">文档</a>中查阅自己需要的 placeholder</p>
+<p>常用的 placeholder：</p>
+<ul>
+<li><code>[ext]</code>：处理文件的扩展名</li>
+<li><code>[name]</code>：处理文件的名称</li>
+<li><code>[hash]</code>：文件的内容，使用 MD4 的散列函数处理，生成的一个 128 位的 hash 值(32 个十六进制)</li>
+<li><code>[contentHash]</code>：在 file-loader 中和[hash]结果是一致的(在 webpack 的一些其他地方不一样)</li>
+<li><code>[hash:&lt;length&gt;]</code>：截图 hash 的长度，默认 32 个字符太长了</li>
+<li><code>[path]</code>：文件相对于 webpack 配置文件的路径</li>
+</ul>
+<h3 id="loader-配置方式" tabindex="-1"> loader 配置方式</h3>
+<p>module.rules 中允许我们配置多个 loader，这种方式可以更好的表示 loader 的配置，也方便后期的维护，同时也让你对各个 Loader 有一个全局的概览</p>
+<p>module.rules 的配置如下：</p>
+<ul>
+<li>rules 属性对应的值是一个数组：[Rule]</li>
+<li>数组中存放的是一个个的 Rule，Rule 是一个对象，对象中可以设置多个属性：
+<ul>
+<li>test 属性：用于对 resource(资源)进行匹配的，通常会设置成正则表达式</li>
+<li>use 属性：对应的值时一个数组[UseEntry]，UseEntry 是一个对象，可以通过对象的属性来设置一些其他属性
+<ul>
+<li>loader：必须有一个 loader 属性，对应的值是一个字符串</li>
+<li>options：可选的属性，值是一个字符串或者对象，值会被传入到 loader 中</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>loader 属性：<code>Rule.use: [ { loader } ]</code>的简写</li>
+</ul>
+<p>传递字符串(如：<code>use: [ 'style-loader' ]</code>)是 loader 属性的简写方式(如：<code>use: [ { loader: 'style-loader'} ]</code>)</p>
+<h3 id="打包样式" tabindex="-1"> 打包样式</h3>
+<p>在<code>public/index.html</code>中添加</p>
+<div><pre><code><span><span><span>&lt;</span>div</span> <span>id</span><span><span>=</span><span>"</span>app<span>"</span></span><span>></span></span><span><span><span>&lt;/</span>div</span><span>></span></span>
+</code></pre><div aria-hidden="true"><div></div></div></div><p>在根目录下新建<code>src/assets/styles/index.scss</code>文件夹，用来存放样式文件文件</p>
+<div><pre><code><span>#app </span><span>{</span>
+  <span>width</span><span>:</span> 100px<span>;</span>
+  <span>height</span><span>:</span> 100px<span>;</span>
+  <span>display</span><span>:</span> flex<span>;</span>
+  <span>background-color</span><span>:</span> pink<span>;</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p>在入口文件<code>index.js</code>中引入 scss 文件</p>
+<div><pre><code><span>import</span> <span>'../assets/styles/index.scss'</span>
+</code></pre><div aria-hidden="true"><div></div></div></div><p><code>.scss</code>与<code>.sass</code>文件用<code>sass-loader</code>与<code>sass</code>，<code>.less</code> 文件用<code>less-loader</code>与<code>less</code></p>
+<div><pre><code><span>npm</span> i sass sass-loader style-loader css-loader -D
+</code></pre><div aria-hidden="true"><div></div></div></div><p>在<code>webpack.config.js</code>中配置</p>
+<div><pre><code><span>module</span><span>:</span> <span>{</span>
+  <span>rules</span><span>:</span> <span>[</span>
+    <span>{</span>
+      <span>test</span><span>:</span> <span><span>/</span><span>\.(css|s[ac]ss)$</span><span>/</span><span>i</span></span><span>,</span>
+      <span>use</span><span>:</span> <span>[</span><span>'style-loader'</span><span>,</span> <span>'css-loader'</span><span>,</span> <span>'sass-loader'</span><span>]</span>
+    <span>}</span>
+  <span>]</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h3 id="打包-html" tabindex="-1"> 打包 html</h3>
+<p>html 文件 webpack 不能解析，需要借助插件编译解析</p>
+<p>在 public 文件夹下的 html 中不引入任何 css 和 js 文件，修改 title 标签内内容</p>
+<div><pre><code><span><span><span>&lt;</span>title</span><span>></span></span>&lt;%= htmlWebpackPlugin.options.title %><span><span><span>&lt;/</span>title</span><span>></span></span>
+</code></pre><div aria-hidden="true"><div></div></div></div><p>安装插件<code>html-webpack-plugin</code></p>
+<div><pre><code><span>npm</span> i html-webpack-plugin -D
+</code></pre><div aria-hidden="true"><div></div></div></div><div><pre><code><span>const</span> htmlWebpackPlugin <span>=</span> <span>require</span><span>(</span><span>'html-webpack-plugin'</span><span>)</span>
+
+module<span>.</span>exports <span>=</span> <span>{</span>
+  <span>plugins</span><span>:</span> <span>[</span>
+    <span>new</span> <span>htmlWebpackPlugin</span><span>(</span><span>{</span>
+      <span>title</span><span>:</span> <span>'webpack5-config'</span><span>,</span>
+      <span>// 指定我们要使用的模块所在的路径</span>
+      <span>template</span><span>:</span> path<span>.</span><span>resolve</span><span>(</span>__dirname<span>,</span> <span>'public/index.html'</span><span>)</span>
+    <span>}</span><span>)</span>
+  <span>]</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h3 id="打包-css-代码为单独文件" tabindex="-1"> 打包 css 代码为单独文件</h3>
+<p>安装插件<code>mini-css-extract-plugin</code>，使用该插件后不需要使用<code>style-loader</code></p>
+<div><pre><code><span>npm</span> i mini-css-extract-plugin -D
+</code></pre><div aria-hidden="true"><div></div></div></div><div><pre><code><span>const</span> MiniCssExtractPlugin <span>=</span> <span>require</span><span>(</span><span>'mini-css-extract-plugin'</span><span>)</span>
+
+module<span>.</span>exports <span>=</span> <span>{</span>
+  <span>// ...</span>
+  <span>module</span><span>:</span> <span>{</span>
+    <span>rules</span><span>:</span> <span>[</span>
+      <span>{</span>
+        <span>test</span><span>:</span> <span><span>/</span><span>\.(css|s[ac]ss)$</span><span>/</span><span>i</span></span><span>,</span>
+        <span>use</span><span>:</span> <span>[</span>MiniCssExtractPlugin<span>.</span>loader<span>,</span> <span>'css-loader'</span><span>,</span> <span>'sass-loader'</span><span>]</span>
+      <span>}</span>
+    <span>]</span>
+  <span>}</span><span>,</span>
+
+  <span>plugins</span><span>:</span> <span>[</span>
+    <span>// ...</span>
+    <span>new</span> <span>MiniCssExtractPlugin</span><span>(</span><span>{</span>
+      <span>// 将css代码输出到dist/styles文件夹下</span>
+      <span>filename</span><span>:</span> <span>'styles/chunk-[contenthash].css'</span><span>,</span>
+      <span>ignoreOrder</span><span>:</span> <span>true</span>
+    <span>}</span><span>)</span>
+  <span>]</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h3 id="postcss" tabindex="-1"> PostCSS</h3>
+<p>PostCSS 可以帮助我们进行一些 CSS 的转换和适配，比如自动添加浏览器前缀、css 样式的重置</p>
+<p><code>postcss-preset-env</code>是一个 postcss 的插件，可以帮助我们将一些现代的 CSS 特性，转成大多数浏览器认识的 CSS，并且会根据目标浏览器或者运行时环境添加所需的 polyfill，也包括会自动帮助我们添加 autoprefixer(所以相当于已经内置了 autoprefixer)</p>
+<h4 id="配置方式一" tabindex="-1"> 配置方式一</h4>
+<p><code>webpack.config.js</code>中配置：</p>
+<div><pre><code>module<span>.</span>exports <span>=</span> <span>{</span>
+  <span>module</span><span>:</span> <span>{</span>
+    <span>rules</span><span>:</span> <span>[</span>
+      <span>{</span>
+        <span>test</span><span>:</span> <span><span>/</span><span>\.(css|s[ac]ss)$</span><span>/</span><span>i</span></span><span>,</span>
+        <span>use</span><span>:</span> <span>[</span>
+          MiniCssExtractPlugin<span>.</span>loader<span>,</span>
+          <span>'css-loader'</span><span>,</span>
+          <span>// css适配</span>
+          <span>{</span>
+            <span>loader</span><span>:</span> <span>'postcss-loader'</span><span>,</span>
+            <span>options</span><span>:</span> <span>{</span>
+              <span>postcssOptions</span><span>:</span> <span>{</span>
+                <span>plugins</span><span>:</span> <span>[</span><span>require</span><span>(</span><span>'postcss-preset-env'</span><span>)</span><span>]</span>
+              <span>}</span>
+            <span>}</span>
+          <span>}</span><span>,</span>
+          <span>'sass-loader'</span>
+        <span>]</span>
+      <span>}</span>
+    <span>]</span>
+  <span>}</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p>在<code>package.json</code>中添加以下配置：</p>
+<div><pre><code><span>"browserslist"</span><span>:</span> <span>{</span>
+    <span>"development"</span><span>:</span> <span>[</span>
+      <span>"last 1 chrome version"</span><span>,</span>
+      <span>"last 1 firefox version"</span><span>,</span>
+      <span>"last 1 safari version"</span>
+    <span>]</span><span>,</span>
+    <span>"production"</span><span>:</span> <span>[</span><span>">0.01%"</span><span>,</span> <span>"not dead"</span><span>,</span> <span>"not op_mini all"</span><span>]</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h4 id="配置方式二" tabindex="-1"> 配置方式二</h4>
+<p>方式二不修改<code>package.json</code>文件</p>
+<p>根目录下新建<code>.browserslistrc</code>文件，配置：</p>
+<div><pre><code># Browsers that we support
+
+last 1 version
+> 1%
+IE 10 # sorry
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div></div></div><p>根目录下新建<code>postcss.config.js</code>文件，配置：</p>
+<div><pre><code>module<span>.</span>exports <span>=</span> <span>{</span>
+  <span>plugins</span><span>:</span> <span>[</span><span>'postcss-preset-env'</span><span>]</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div></div></div><p><code>webpack.config.js</code>中配置：</p>
+<div><pre><code>module<span>.</span>exports <span>=</span> <span>{</span>
+  <span>module</span><span>:</span> <span>{</span>
+    <span>rules</span><span>:</span> <span>[</span>
+      <span>{</span>
+        <span>test</span><span>:</span> <span><span>/</span><span>\.(css|s[ac]ss)$</span><span>/</span><span>i</span></span><span>,</span>
+        <span>use</span><span>:</span> <span>[</span>
+          MiniCssExtractPlugin<span>.</span>loader<span>,</span>
+          <span>'css-loader'</span><span>,</span>
+          <span>// css适配</span>
+          <span>'postcss-loader'</span><span>,</span>
+          <span>'sass-loader'</span>
+        <span>]</span>
+      <span>}</span>
+    <span>]</span>
+  <span>}</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h3 id="认识-asset-module-type" tabindex="-1"> 认识 asset module type</h3>
+<p>当前使用的 webpack 版本是 webpack5，在 webpack5 之前，加载图片资源等我们需要使用一些 loader，比如 <code>url-loader</code>、<code>file-loader</code></p>
+<p>在 webpack5 开始，我们可以直接使用资源模块类型(asset module type)，来替代上面的这些 loader</p>
+<p>资源模块类型(asset module type)，通过添加 4 种新的模块类型，来替换所有这些 loader：</p>
+<ul>
+<li><code>asset/resource</code>：发送一个单独的文件并导出 URL。之前通过使用<code>file-loader</code>实现</li>
+<li><code>passet/inline</code>：导出一个资源的 data URI。之前通过使用<code>url-loader</code>实现</li>
+<li><code>passet/source</code>：导出资源的源代码。之前通过使用<code>raw-loader</code>实现</li>
+<li><code>passet</code>：在导出一个 data URI 和发送一个单独的文件之间自动选择。之前通过使用<code>url-loader</code>，并且配置资源体积限制实现</li>
+</ul>
+<h4 id="加载图片设置" tabindex="-1"> 加载图片设置</h4>
+<p>测试了下，似乎不添加配置也能打包字体与图片，如果要指定打包后文件夹就得配置</p>
+<p>放置一张图片在<code>src/assets/images</code>中，修改<code>index.scss</code>样式</p>
+<div><pre><code><span>#app </span><span>{</span>
+  <span>width</span><span>:</span> 100px<span>;</span>
+  <span>height</span><span>:</span> 100px<span>;</span>
+  <span>display</span><span>:</span> flex<span>;</span>
+  <span>background</span><span>:</span> <span>url</span><span>(</span><span>'../images/bg.png'</span><span>)</span> no-repeat<span>;</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p>在<code>webpack.config.js</code>中配置：</p>
+<div><pre><code>module<span>.</span>exports <span>=</span> <span>{</span>
+  <span>module</span><span>:</span> <span>{</span>
+    <span>rules</span><span>:</span> <span>[</span>
+      <span>{</span>
+        <span>test</span><span>:</span> <span><span>/</span><span>\.(png|jpe?g|gif|svg)$</span><span>/</span><span>i</span></span><span>,</span>
+        <span>type</span><span>:</span> <span>'asset/resource'</span><span>,</span>
+        <span>// 自定义文件的输出路径和文件名</span>
+        <span>generator</span><span>:</span> <span>{</span>
+          <span>filename</span><span>:</span> <span>'images/[name]_[hash:5][ext]'</span>
+        <span>}</span>
+      <span>}</span>
+    <span>]</span>
+  <span>}</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h4 id="加载字体设置" tabindex="-1"> 加载字体设置</h4>
+<p>在<code>public/index.html</code>中添加字体图标标签类</p>
+<div><pre><code><span><span><span>&lt;</span>div</span><span>></span></span><span><span><span>&lt;</span>i</span> <span>class</span><span><span>=</span><span>"</span>iconfont icon-beian<span>"</span></span><span>></span></span><span><span><span>&lt;/</span>i</span><span>></span></span><span><span><span>&lt;/</span>div</span><span>></span></span>
+</code></pre><div aria-hidden="true"><div></div></div></div><p>将字体文件放在<code>src/assets/fonts</code>目录下，在<code>index.scss</code>文件中引入字体</p>
+<div><pre><code><span>@import</span> <span>url</span><span>(</span><span>'../fonts/iconfont.css'</span><span>)</span><span>;</span>
+</code></pre><div aria-hidden="true"><div></div></div></div><div><pre><code>module<span>.</span>exports <span>=</span> <span>{</span>
+  <span>module</span><span>:</span> <span>{</span>
+    <span>rules</span><span>:</span> <span>[</span>
+      <span>// ...</span>
+      <span>{</span>
+        <span>test</span><span>:</span> <span><span>/</span><span>\.(eot|ttf|woff2?)$</span><span>/</span></span><span>,</span>
+        <span>type</span><span>:</span> <span>'asset/resource'</span><span>,</span>
+        <span>generator</span><span>:</span> <span>{</span>
+          <span>filename</span><span>:</span> <span>'font/[name]_[hash:5][ext]'</span>
+        <span>}</span>
+      <span>}</span>
+    <span>]</span>
+  <span>}</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h3 id="引入favicon-ico图标" tabindex="-1"> 引入<code>favicon.ico</code>图标</h3>
+<p>在<code>public</code>文件夹中放入<code>favicon.ico</code>文件，并在 html 文件中引入<code>favicon.ico</code></p>
+<div><pre><code><span><span><span>&lt;</span>link</span> <span>rel</span><span><span>=</span><span>"</span>icon<span>"</span></span> <span>href</span><span><span>=</span><span>"</span>&lt;%= BASE_URL %>favicon.ico<span>"</span></span> <span>/></span></span>
+</code></pre><div aria-hidden="true"><div></div></div></div><p>这个时候运行<code>npm ru build</code>会报错，因为在我们的模块中还使用到一个 BASE_URL 的常量，这个时候我们可以使用 DefinePlugin 插件</p>
+<p>DefinePlugin 允许在编译时创建配置的全局常量，是一个 webpack 内置的插件(不需要单独安装)</p>
+<div><pre><code><span>const</span> <span>{</span> DefinePlugin <span>}</span> <span>=</span> <span>require</span><span>(</span><span>'webpack'</span><span>)</span>
+
+module<span>.</span>exports <span>=</span> <span>{</span>
+  <span>plugins</span><span>:</span> <span>[</span>
+    <span>new</span> <span>DefinePlugin</span><span>(</span><span>{</span>
+      <span>BASE_URL</span><span>:</span> <span>'"./"'</span>
+    <span>}</span><span>)</span>
+  <span>]</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h3 id="copywebpackplugin" tabindex="-1"> CopyWebpackPlugin</h3>
+<p>在上述操作<code>npm run build</code>后发现<code>public</code>目录下的<code>favicon.ico</code>文件并未打包到 dist 目录下，在 dist 目录下运行时仍没有 ico 图标</p>
+<p><code>copy-webpack-plugin</code>插件可以帮助我们将<code>public</code>目录的内容复制到<code>dist</code>文件夹中</p>
+<div><pre><code><span>npm</span> i copy-webpack-plugin -D
+</code></pre><div aria-hidden="true"><div></div></div></div><p>在<code>webpack.config.js</code>中配置</p>
+<div><pre><code><span>const</span> copyWebpackPlugin <span>=</span> <span>require</span><span>(</span><span>'copy-webpack-plugin'</span><span>)</span>
+
+module<span>.</span>exports <span>=</span> <span>{</span>
+  <span>plugins</span><span>:</span> <span>[</span>
+    <span>new</span> <span>copyWebpackPlugin</span><span>(</span><span>{</span>
+      <span>patterns</span><span>:</span> <span>[</span>
+        <span>{</span>
+          <span>// 设置从哪一个源中开始复制</span>
+          <span>from</span><span>:</span> <span>'./public'</span><span>,</span>
+          <span>globOptions</span><span>:</span> <span>{</span>
+            <span>// 忽略的文件</span>
+            <span>ignore</span><span>:</span> <span>[</span><span>'**/index.html'</span><span>]</span>
+          <span>}</span>
+        <span>}</span>
+      <span>]</span>
+    <span>}</span><span>)</span>
+  <span>]</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h3 id="配置-babel" tabindex="-1"> 配置 babel</h3>
+<p><code>babel</code>可以将我们项目中的高级语法转化成比较低级的语法，比如可以将 ES6 转为 ES5，这样可以兼容一些低版本浏览器，所以是很有必要的</p>
+<div><pre><code><span>npm</span> i babel-loader @babel/core @babel/preset-env -D
+</code></pre><div aria-hidden="true"><div></div></div></div><p>由于 babel 是针对 js 文件的语法转换，所以我们需要在 webpack.config.js 中去针对 js 进行操作</p>
+<div><pre><code>module<span>.</span>exports <span>=</span> <span>{</span>
+  <span>module</span><span>:</span> <span>{</span>
+    <span>rules</span><span>:</span> <span>[</span>
+      <span>// ...</span>
+      <span>{</span>
+        <span>test</span><span>:</span> <span><span>/</span><span>\.js$</span><span>/</span><span>i</span></span><span>,</span>
+        <span>exclude</span><span>:</span> <span><span>/</span><span>node_modules</span><span>/</span></span><span>,</span>
+        <span>use</span><span>:</span> <span>[</span>
+          <span>{</span>
+            <span>loader</span><span>:</span> <span>'babel-loader'</span><span>,</span>
+            <span>// 若配置了babel.config.js，则options不用配置</span>
+            <span>options</span><span>:</span> <span>{</span>
+              <span>presets</span><span>:</span> <span>[</span><span>'@babel/preset-env'</span><span>]</span>
+            <span>}</span>
+          <span>}</span>
+        <span>]</span>
+      <span>}</span>
+    <span>]</span>
+  <span>}</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p>像之前一样，我们可以将 babel 的配置信息放到一个独立的文件中，babel 给我们提供了两种配置文件的编写</p>
+<ul>
+<li><code>babel.config.json</code>(或者.js，.cjs，.mjs)文件</li>
+<li><code>.babelrc.json</code>(或者.babelrc，.js，.cjs，.mjs)文件</li>
+</ul>
+<p>目前很多的项目都采用了多包管理的方式(babel 本身、element-plus、umi 等)</p>
+<p><code>.babelrc.json</code>早期使用较多的配置方式，但是对于配置 Monorepos 项目是比较麻烦的</p>
+<p><code>babel.config.json</code>(babel7)可以直接作用于 Monorepos 项目的子包，更加推荐</p>
+<div><pre><code>module<span>.</span>exports <span>=</span> <span>{</span>
+  <span>presets</span><span>:</span> <span>[</span>
+    <span>// 配置规则</span>
+    <span>'@babel/preset-env'</span>
+  <span>]</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h3 id="自动编译打包运行" tabindex="-1"> 自动编译打包运行</h3>
+<div><pre><code><span>npm</span> i webpack-dev-server -D
+</code></pre><div aria-hidden="true"><div></div></div></div><p>在<code>webpack.config.js</code>中配置</p>
+<div><pre><code>module<span>.</span>exports <span>=</span> <span>{</span>
+  <span>devServer</span><span>:</span> <span>{</span>
+    <span>port</span><span>:</span> <span>8000</span><span>,</span> <span>// 自定义端口号</span>
+    <span>open</span><span>:</span> <span>true</span> <span>// 自动打开浏览器</span>
+  <span>}</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p>在<code>package.json</code>中配置<code>scripts</code>命令：</p>
+<div><pre><code><span>"scripts"</span><span>:</span> <span>{</span>
+  <span>"dev"</span><span>:</span><span>"webpack serve"</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div></div></div><h3 id="打包-vue-文件" tabindex="-1"> 打包 vue 文件</h3>
+<p>先安装以下几个包</p>
+<div><pre><code><span>npm</span> i vue vue-loader vue-template-compiler @vue/babel-preset-jsx -D
+</code></pre><div aria-hidden="true"><div></div></div></div><p>然后我们需要去<code>webpack.config.js</code>中配置对<code>.vue</code>文件的解析</p>
+<div><pre><code><span>const</span> <span>{</span> VueLoaderPlugin <span>}</span> <span>=</span> <span>require</span><span>(</span><span>'vue-loader'</span><span>)</span>
+
+module<span>.</span>exports <span>=</span> <span>{</span>
+  <span>module</span><span>:</span> <span>{</span>
+    <span>rules</span><span>:</span> <span>[</span>
+      <span>// ...</span>
+      <span>{</span>
+        <span>test</span><span>:</span> <span><span>/</span><span>\.vue$</span><span>/</span></span><span>,</span>
+        <span>use</span><span>:</span> <span>'vue-loader'</span>
+      <span>}</span>
+    <span>]</span>
+  <span>}</span><span>,</span>
+  <span>plugins</span><span>:</span> <span>[</span>
+    <span>// ...</span>
+    <span>new</span> <span>VueLoaderPlugin</span><span>(</span><span>)</span>
+  <span>]</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p>并且到<code>babel.config.js</code>中配置一下，让 webpack 支持<code>.vue</code>文件中的 jsx 语法</p>
+<div><pre><code>module<span>.</span>exports <span>=</span> <span>{</span>
+  <span>presets</span><span>:</span> <span>[</span>
+    <span>'@babel/preset-env'</span><span>,</span>
+    <span>'@vue/babel-preset-jsx'</span> <span>// 支持vue中的jsx语法</span>
+  <span>]</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p>在 src 下新建一个 App.vue</p>
+<div><pre><code><span><span><span>&lt;</span>template</span><span>></span></span>
+  <span><span><span>&lt;</span>div</span> <span>class</span><span><span>=</span><span>"</span>box<span>"</span></span><span>></span></span>
+    <span><span><span>&lt;</span>h1</span><span>></span></span>app...<span><span><span>&lt;/</span>h1</span><span>></span></span>
+    <span><span><span>&lt;</span>p</span><span>></span></span>{{ msg }}<span><span><span>&lt;/</span>p</span><span>></span></span>
+  <span><span><span>&lt;/</span>div</span><span>></span></span>
+<span><span><span>&lt;/</span>template</span><span>></span></span>
+
+<span><span><span>&lt;</span>script</span> <span>setup</span><span>></span></span><span><span>
+<span>import</span> <span>{</span> ref <span>}</span> <span>from</span> <span>'vue'</span>
+
+<span>const</span> msg <span>=</span> <span>ref</span><span>(</span><span>'hello vue'</span><span>)</span>
+</span></span><span><span><span>&lt;/</span>script</span><span>></span></span>
+
+<span><span><span>&lt;</span>style</span> <span>lang</span><span><span>=</span><span>"</span>scss<span>"</span></span> <span>scoped</span><span>></span></span><span><span>
+<span>.box</span> <span>{</span>
+  <span>width</span><span>:</span> 200px<span>;</span>
+  <span>height</span><span>:</span> 200px<span>;</span>
+  <span>background-color</span><span>:</span> palegreen<span>;</span>
+<span>}</span>
+</span></span><span><span><span>&lt;/</span>style</span><span>></span></span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p>然后改写一下<code>src/js/index.js</code></p>
+<div><pre><code><span>import</span> <span>{</span> createApp <span>}</span> <span>from</span> <span>'vue'</span>
+<span>import</span> App <span>from</span> <span>'../App.vue'</span>
+
+<span>const</span> app <span>=</span> <span>createApp</span><span>(</span>App<span>)</span>
+
+app<span>.</span><span>mount</span><span>(</span><span>'#app'</span><span>)</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h3 id="配置路径别名" tabindex="-1"> 配置路径别名</h3>
+<p>有时候文件引用搁着太多层，引用起来会看起来很不明确，比如<code>../../../../../App.vue</code>，所以可以在<code>webpack.config.js</code>中配置一下别名 alias</p>
+<div><pre><code>module<span>.</span>exports <span>=</span> <span>{</span>
+  <span>resolve</span><span>:</span> <span>{</span>
+    <span>alias</span><span>:</span> <span>{</span>
+      <span>'@'</span><span>:</span> path<span>.</span><span>resolve</span><span>(</span>__dirname<span>,</span> <span>'./src'</span><span>)</span>
+    <span>}</span><span>,</span>
+    <span>extensions</span><span>:</span> <span>[</span><span>'.js'</span><span>,</span> <span>'.ts'</span><span>,</span> <span>'.scss'</span><span>,</span> <span>'.vue'</span><span>]</span> <span>// 引入文件时省略后缀名</span>
+  <span>}</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h3 id="区分开发和生成环境配置" tabindex="-1"> 区分开发和生成环境配置</h3>
+<p>我们不能把所有配置都配置在一个<code>webpack.config.js</code>中，因为我们有两个环境 development(开发环境)、production(生产环境)，所以我们在根目录下创建<code>config</code>文件夹，并创建三个文件<code>webpack.common.js</code>、<code>webpack.prod.js</code>、<code>webpack.dev.js</code></p>
+<div><pre><code><span>npm</span> i webpack-merge -D
+</code></pre><div aria-hidden="true"><div></div></div></div><p><code>webpack.common.js</code></p>
+<div><pre><code><span>const</span> path <span>=</span> <span>require</span><span>(</span><span>'path'</span><span>)</span>
+<span>const</span> htmlWebpackPlugin <span>=</span> <span>require</span><span>(</span><span>'html-webpack-plugin'</span><span>)</span>
+<span>const</span> MiniCssExtractPlugin <span>=</span> <span>require</span><span>(</span><span>'mini-css-extract-plugin'</span><span>)</span>
+<span>const</span> <span>{</span> DefinePlugin <span>}</span> <span>=</span> <span>require</span><span>(</span><span>'webpack'</span><span>)</span>
+<span>const</span> <span>{</span> VueLoaderPlugin <span>}</span> <span>=</span> <span>require</span><span>(</span><span>'vue-loader'</span><span>)</span>
+
+module<span>.</span>exports <span>=</span> <span>{</span>
+  <span>// 入口文件 index.js</span>
+  <span>entry</span><span>:</span> <span>'./src/js/index.js'</span><span>,</span>
+
+  <span>// 输出</span>
+  <span>output</span><span>:</span> <span>{</span>
+    <span>// 打包后的输出目录</span>
+    <span>path</span><span>:</span> path<span>.</span><span>resolve</span><span>(</span>__dirname<span>,</span> <span>'../dist'</span><span>)</span><span>,</span>
+    <span>// 打包后的文件名</span>
+    <span>filename</span><span>:</span> <span>'js/main.js'</span><span>,</span>
+    <span>// 打包后自动清除旧的输出目录</span>
+    <span>clean</span><span>:</span> <span>true</span>
+  <span>}</span><span>,</span>
+
+  <span>resolve</span><span>:</span> <span>{</span>
+    <span>alias</span><span>:</span> <span>{</span>
+      <span>'@'</span><span>:</span> path<span>.</span><span>resolve</span><span>(</span>__dirname<span>,</span> <span>'../src'</span><span>)</span>
+    <span>}</span><span>,</span>
+    <span>extensions</span><span>:</span> <span>[</span><span>'.js'</span><span>,</span> <span>'.ts'</span><span>,</span> <span>'.scss'</span><span>,</span> <span>'.vue'</span><span>]</span> <span>// 引入文件时省略后缀名</span>
+  <span>}</span><span>,</span>
+
+  <span>module</span><span>:</span> <span>{</span>
+    <span>rules</span><span>:</span> <span>[</span>
+      <span>{</span>
+        <span>test</span><span>:</span> <span><span>/</span><span>\.(css|s[ac]ss)$</span><span>/</span><span>i</span></span><span>,</span>
+        <span>use</span><span>:</span> <span>[</span>
+          MiniCssExtractPlugin<span>.</span>loader<span>,</span>
+          <span>'css-loader'</span><span>,</span>
+          <span>// css适配</span>
+          <span>'postcss-loader'</span><span>,</span>
+          <span>'sass-loader'</span>
+        <span>]</span>
+      <span>}</span><span>,</span>
+
+      <span>{</span>
+        <span>test</span><span>:</span> <span><span>/</span><span>\.(png|jpe?g|gif|svg)$</span><span>/</span><span>i</span></span><span>,</span>
+        <span>type</span><span>:</span> <span>'asset/resource'</span><span>,</span>
+        <span>parser</span><span>:</span> <span>{</span>
+          <span>// 转base64的条件</span>
+          <span>dataUrlCondition</span><span>:</span> <span>{</span>
+            <span>maxSize</span><span>:</span> <span>25</span> <span>*</span> <span>1024</span> <span>// 25kb</span>
+          <span>}</span>
+        <span>}</span><span>,</span>
+        <span>// 自定义文件的输出路径和文件名</span>
+        <span>generator</span><span>:</span> <span>{</span>
+          <span>filename</span><span>:</span> <span>'images/[name]_[hash:5][ext]'</span>
+        <span>}</span>
+      <span>}</span><span>,</span>
+
+      <span>{</span>
+        <span>test</span><span>:</span> <span><span>/</span><span>\.(eot|ttf|woff2?)$</span><span>/</span></span><span>,</span>
+        <span>type</span><span>:</span> <span>'asset/resource'</span><span>,</span>
+        <span>generator</span><span>:</span> <span>{</span>
+          <span>filename</span><span>:</span> <span>'font/[name]_[hash:5][ext]'</span>
+        <span>}</span>
+      <span>}</span><span>,</span>
+
+      <span>{</span>
+        <span>test</span><span>:</span> <span><span>/</span><span>\.js$</span><span>/</span><span>i</span></span><span>,</span>
+        <span>exclude</span><span>:</span> <span><span>/</span><span>node_modules</span><span>/</span></span><span>,</span>
+        <span>use</span><span>:</span> <span>'babel-loader'</span>
+      <span>}</span><span>,</span>
+
+      <span>{</span>
+        <span>test</span><span>:</span> <span><span>/</span><span>\.vue$</span><span>/</span></span><span>,</span>
+        <span>use</span><span>:</span> <span>'vue-loader'</span>
+      <span>}</span>
+    <span>]</span>
+  <span>}</span><span>,</span>
+
+  <span>plugins</span><span>:</span> <span>[</span>
+    <span>new</span> <span>htmlWebpackPlugin</span><span>(</span><span>{</span>
+      <span>title</span><span>:</span> <span>'webpack-study'</span><span>,</span>
+      <span>// 指定要使用的模板所在的路径</span>
+      <span>template</span><span>:</span> path<span>.</span><span>resolve</span><span>(</span>__dirname <span>+</span> <span>'/../public/index.html'</span><span>)</span>
+    <span>}</span><span>)</span><span>,</span>
+
+    <span>new</span> <span>MiniCssExtractPlugin</span><span>(</span><span>{</span>
+      <span>// 将css代码输出到dist/styles文件夹下</span>
+      <span>filename</span><span>:</span> <span>'styles/chunk-[contenthash].css'</span><span>,</span>
+      <span>ignoreOrder</span><span>:</span> <span>true</span>
+    <span>}</span><span>)</span><span>,</span>
+
+    <span>new</span> <span>DefinePlugin</span><span>(</span><span>{</span>
+      <span>BASE_URL</span><span>:</span> <span>'"./"'</span>
+    <span>}</span><span>)</span><span>,</span>
+
+    <span>new</span> <span>VueLoaderPlugin</span><span>(</span><span>)</span>
+  <span>]</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p><code>webpack.dev.js</code></p>
+<div><pre><code><span>const</span> <span>{</span> merge <span>}</span> <span>=</span> <span>require</span><span>(</span><span>'webpack-merge'</span><span>)</span>
+<span>const</span> commonConfig <span>=</span> <span>require</span><span>(</span><span>'./webpack.common'</span><span>)</span>
+
+module<span>.</span>exports <span>=</span> <span>merge</span><span>(</span>commonConfig<span>,</span> <span>{</span>
+  <span>// 模式，默认为production，不填写打包时会有warning</span>
+  <span>mode</span><span>:</span> <span>'development'</span><span>,</span>
+
+  <span>devServer</span><span>:</span> <span>{</span>
+    <span>port</span><span>:</span> <span>8000</span><span>,</span>
+    <span>open</span><span>:</span> <span>true</span> <span>// 自动打开浏览器</span>
+  <span>}</span>
+<span>}</span><span>)</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p><code>webpack.prod.js</code></p>
+<div><pre><code><span>const</span> copyWebpackPlugin <span>=</span> <span>require</span><span>(</span><span>'copy-webpack-plugin'</span><span>)</span>
+<span>const</span> <span>{</span> merge <span>}</span> <span>=</span> <span>require</span><span>(</span><span>'webpack-merge'</span><span>)</span>
+<span>const</span> commonConfig <span>=</span> <span>require</span><span>(</span><span>'./webpack.common.js'</span><span>)</span>
+
+module<span>.</span>exports <span>=</span> <span>merge</span><span>(</span>commonConfig<span>,</span> <span>{</span>
+  <span>// 模式，默认为production，不填写打包时会有warning</span>
+  <span>mode</span><span>:</span> <span>'production'</span><span>,</span>
+  <span>plugins</span><span>:</span> <span>[</span>
+    <span>new</span> <span>copyWebpackPlugin</span><span>(</span><span>{</span>
+      <span>patterns</span><span>:</span> <span>[</span>
+        <span>{</span>
+          <span>// 设置从哪一个源中开始复制</span>
+          <span>from</span><span>:</span> <span>'./public'</span><span>,</span>
+          <span>globOptions</span><span>:</span> <span>{</span>
+            <span>// 忽略的文件</span>
+            <span>ignore</span><span>:</span> <span>[</span><span>'**/index.html'</span><span>]</span>
+          <span>}</span>
+        <span>}</span>
+      <span>]</span>
+    <span>}</span><span>)</span>
+  <span>]</span>
+<span>}</span><span>)</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p><strong>注意路径修改</strong></p>
+<p>然后修改<code>package.json</code>中<code>scripts</code>命令</p>
+<div><pre><code><span>"scripts"</span><span>:</span> <span>{</span>
+  <span>"dev"</span><span>:</span> <span>"webpack serve --config ./config/webpack.dev.js"</span><span>,</span>
+  <span>"build"</span><span>:</span> <span>"webpack --config ./config/webpack.prod.js"</span>
+<span>}</span><span>,</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div></div></div><h2 id="优化" tabindex="-1"> 优化</h2>
+<h3 id="devtool" tabindex="-1"> devtool</h3>
+<p>此选项控制是否生成，以及如何生成 source map。所有的 source map 模式参考<a href="https://webpack.docschina.org/configuration/devtool/#root" target="_blank" rel="noopener noreferrer">webpack 官网</a></p>
+<ul>
+<li>development：使用 eval-cheap-module-source-map 模式，能具体定位到源码位置和源码展示，适合开发模式，体积较小</li>
+<li>production：使用 nosources-source-map，只能定位源码位置，不能源码展示，体积较小，适合生产模式</li>
+</ul>
+<p>在<code>webpack.dev.js</code>中配置</p>
+<div><pre><code>module<span>.</span>exports <span>=</span> <span>merge</span><span>(</span>commonConfig<span>,</span> <span>{</span>
+  <span>// ...</span>
+  <span>devtool</span><span>:</span> <span>'eval-cheap-module-source-map'</span>
+<span>}</span><span>)</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div></div></div><p>在<code>webpack.prod.js</code>中配置</p>
+<div><pre><code>module<span>.</span>exports <span>=</span> <span>merge</span><span>(</span>commonConfig<span>,</span> <span>{</span>
+  <span>// ...</span>
+  <span>devtool</span><span>:</span> <span>'nosources-source-map'</span>
+<span>}</span><span>)</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div></div></div><p>生产环境代码需要部署到服务器上才能运行，serve 这个库能帮助我们快速搭建一个静态资源服务器</p>
+<ul>
+<li><code>npm i serve -g</code></li>
+<li><code>serve -s dist -p 8000</code></li>
+</ul>
+<h3 id="构建进度条" tabindex="-1"> 构建进度条</h3>
+<p>无论是启动项目时还是打包时，都需要进度条的展示，所以需要把进度条配置在<code>webpack.common.js</code>中，我们需要先安装进度条的插件<code>progress-bar-webpack-plugin</code></p>
+<div><pre><code><span>npm</span> i progress-bar-webpack-plugin -D
+</code></pre><div aria-hidden="true"><div></div></div></div><div><pre><code><span>const</span> ProgressBarPlugin <span>=</span> <span>require</span><span>(</span><span>'progress-bar-webpack-plugin'</span><span>)</span>
+<span>const</span> chalk <span>=</span> <span>require</span><span>(</span><span>'chalk'</span><span>)</span>
+
+module<span>.</span>exports <span>=</span> <span>{</span>
+  <span>// ...</span>
+  <span>plugins</span><span>:</span> <span>[</span>
+    <span>// ...</span>
+    <span>new</span> <span>ProgressBarPlugin</span><span>(</span><span>{</span>
+      <span>format</span><span>:</span> <span><span>`</span><span> build [:bar] </span><span><span>${</span>chalk<span>.</span>green<span>.</span><span>bold</span><span>(</span><span>':percent'</span><span>)</span><span>}</span></span><span> (:elapsed seconds)</span><span>`</span></span>
+    <span>}</span><span>)</span>
+  <span>]</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h3 id="构建时间优化" tabindex="-1"> 构建时间优化</h3>
+<p>多进程打包，可以大大提高构建的速度，使用方法是将 thread-loader 放在比较费时间的 loader 之前，比如 babel-loader</p>
+<p>由于启动项目和打包项目都需要加速，所以配置在<code>webpack.common.js</code></p>
+<div><pre><code><span>npm</span> i thread-loader -D
+</code></pre><div aria-hidden="true"><div></div></div></div><p>将之前配置<code>babel-loader</code>的位置修改</p>
+<div><pre><code>module<span>.</span>exports <span>=</span> <span>{</span>
+  <span>module</span><span>:</span> <span>{</span>
+    <span>rules</span><span>:</span> <span>[</span>
+      <span>{</span>
+        <span>test</span><span>:</span> <span><span>/</span><span>\.js$</span><span>/</span><span>i</span></span><span>,</span>
+        <span>exclude</span><span>:</span> <span><span>/</span><span>node_modules</span><span>/</span></span><span>,</span>
+        <span>use</span><span>:</span> <span>[</span><span>'thread-loader'</span><span>,</span> <span>'babel-loader'</span><span>]</span>
+      <span>}</span>
+    <span>]</span>
+  <span>}</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h3 id="开启热更新" tabindex="-1"> 开启热更新</h3>
+<p>比如你修改了项目中某一个文件，会导致整个项目刷新，这非常耗时间。如果只刷新修改的这个模块，其他保持原状，那将大大提高修改代码的重新构建时间</p>
+<p>只用于开发中，所以配置在<code>webpack.dev.js</code></p>
+<div><pre><code>module<span>.</span>exports <span>=</span> <span>merge</span><span>(</span>commonConfig<span>,</span> <span>{</span>
+  <span>devServer</span><span>:</span> <span>{</span>
+    <span>// ...</span>
+    <span>hot</span><span>:</span> <span>true</span>
+  <span>}</span>
+<span>}</span><span>)</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h3 id="css-代码压缩" tabindex="-1"> CSS 代码压缩</h3>
+<p>CSS 代码压缩使用<code>css-minimizer-webpack-plugin</code>，效果包括压缩、去重</p>
+<div><pre><code><span>npm</span> i css-minimizer-webpack-plugin -D
+</code></pre><div aria-hidden="true"><div></div></div></div><p>代码的压缩比较耗时间，所以只用在打包项目时，所以只需要在<code>webpack.prod.js</code>中配置</p>
+<div><pre><code><span>const</span> CssMinimizerPlugin <span>=</span> <span>require</span><span>(</span><span>'css-minimizer-webpack-plugin'</span><span>)</span>
+
+module<span>.</span>exports <span>=</span> <span>merge</span><span>(</span>commonConfig<span>,</span> <span>{</span>
+  <span>// ...</span>
+  <span>optimization</span><span>:</span> <span>{</span>
+    <span>minimizer</span><span>:</span> <span>[</span><span>new</span> <span>CssMinimizerPlugin</span><span>(</span><span>)</span><span>]</span>
+  <span>}</span><span>,</span>
+  <span>plugins</span><span>:</span> <span>[</span>
+    <span>//  ...</span>
+    <span>new</span> <span>CssMinimizerPlugin</span><span>(</span><span>)</span> <span>// 去重压缩css</span>
+  <span>]</span>
+<span>}</span><span>)</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h3 id="js-代码压缩" tabindex="-1"> JS 代码压缩</h3>
+<p>JS 代码压缩使用<code>terser-webpack-plugin</code>，实现打包后 JS 代码的压缩</p>
+<div><pre><code><span>npm</span> i terser-webpack-plugin -D
+</code></pre><div aria-hidden="true"><div></div></div></div><div><pre><code><span>const</span> TerserPlugin <span>=</span> <span>require</span><span>(</span><span>'terser-webpack-plugin'</span><span>)</span>
+
+module<span>.</span>exports <span>=</span> <span>merge</span><span>(</span>commonConfig<span>,</span> <span>{</span>
+  <span>optimization</span><span>:</span> <span>{</span>
+    <span>minimizer</span><span>:</span> <span>[</span>
+      <span>// ...</span>
+
+      <span>new</span> <span>TerserPlugin</span><span>(</span><span>{</span>
+        <span>// 压缩JS代码</span>
+        <span>terserOptions</span><span>:</span> <span>{</span>
+          <span>compress</span><span>:</span> <span>{</span>
+            <span>drop_console</span><span>:</span> <span>true</span> <span>// 去除console</span>
+          <span>}</span>
+        <span>}</span>
+      <span>}</span><span>)</span>
+    <span>]</span>
+  <span>}</span>
+<span>}</span><span>)</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h3 id="打包体积分析" tabindex="-1"> 打包体积分析</h3>
+<p>使用<code>webpack-bundle-analyzer</code>可以审查打包后的体积分布，进而进行相应的体积优化</p>
+<div><pre><code>npm i webpack<span>-</span>bundle<span>-</span>analyzer <span>-</span><span>D</span>
+</code></pre><div aria-hidden="true"><div></div></div></div><p>只需要打包时看体积，所以只需在<code>webpack.prod.js</code>中配置</p>
+<div><pre><code><span>const</span> <span>{</span> BundleAnalyzerPlugin <span>}</span> <span>=</span> <span>require</span><span>(</span><span>'webpack-bundle-analyzer'</span><span>)</span>
+
+module<span>.</span>exports <span>=</span> <span>merge</span><span>(</span>commonConfig<span>,</span> <span>{</span>
+  <span>plugins</span><span>:</span> <span>[</span>
+    <span>//  ...</span>
+
+    <span>new</span> <span>BundleAnalyzerPlugin</span><span>(</span><span>)</span>
+  <span>]</span>
+<span>}</span><span>)</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h3 id="gzip" tabindex="-1"> Gzip</h3>
+<p>开启 Gzip 后，大大提高用户的页面加载速度，因为 gzip 的体积比原文件小很多，当然需要后端的配合，使用 <code>compression-webpack-plugin</code></p>
+<div><pre><code><span>npm</span> i compression-webpack-plugin -D
+</code></pre><div aria-hidden="true"><div></div></div></div><div><pre><code><span>const</span> CompressionPlugin <span>=</span> <span>require</span><span>(</span><span>'compression-webpack-plugin'</span><span>)</span>
+
+module<span>.</span>exports <span>=</span> <span>merge</span><span>(</span>commonConfig<span>,</span> <span>{</span>
+  <span>plugins</span><span>:</span> <span>[</span>
+    <span>// ...</span>
+
+    <span>new</span> <span>CompressionPlugin</span><span>(</span><span>{</span>
+      <span>algorithm</span><span>:</span> <span>'gzip'</span><span>,</span>
+      <span>threshold</span><span>:</span> <span>10240</span><span>,</span>
+      <span>minRatio</span><span>:</span> <span>0.8</span>
+    <span>}</span><span>)</span>
+  <span>]</span>
+<span>}</span><span>)</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h2 id="规范" tabindex="-1"> 规范</h2>
+<h3 id="eslint" tabindex="-1"> Eslint</h3>
+<div><pre><code><span>npm</span> i eslint -D
+</code></pre><div aria-hidden="true"><div></div></div></div><p>首先通过命令创建<code>.eslintrc.js</code>文件。 执行</p>
+<div><pre><code>npx eslint --init
+</code></pre><div aria-hidden="true"><div></div></div></div><p><img src="@source/docs/20220531/2022-05-31-22-34-33.png" alt="">
+<img src="@source/docs/20220531/2022-05-31-22-34-51.png" alt=""></p>
+<p>配置<code>.eslintignore</code>，eslint 有时会校验一些我们不想让它校验的文件，我们可以加一下这个配置</p>
+<div><pre><code>config/
+node_modules/
+.husky
+.local
+dist
+/public
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p>我们现在只是完成了 Eslint 的自身配置，但是我们的目的是要开发构建时能在终端提示语法错误，所以需要将 Eslint 配置在<code>webpack.dev.js</code>中</p>
+<div><pre><code><span>npm</span> i eslint-webpack-plugin -D
+</code></pre><div aria-hidden="true"><div></div></div></div><div><pre><code><span>const</span> ESLintPlugin <span>=</span> <span>require</span><span>(</span><span>'eslint-webpack-plugin'</span><span>)</span>
+
+module<span>.</span>exports <span>=</span> <span>merge</span><span>(</span>commonConfig<span>,</span> <span>{</span>
+  <span>plugins</span><span>:</span> <span>[</span>
+    <span>new</span> <span>ESLintPlugin</span><span>(</span><span>{</span>
+      <span>// 运行的时候自动帮你修复错误</span>
+      <span>fix</span><span>:</span> <span>true</span>
+    <span>}</span><span>)</span>
+  <span>]</span>
+<span>}</span><span>)</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h3 id="prettier" tabindex="-1"> Prettier</h3>
+<div><pre><code><span>npm</span> i prettier -D
+</code></pre><div aria-hidden="true"><div></div></div></div><p>根目录下配置<code>.prettierrc</code>文件</p>
+<div><pre><code>{
+  "useTabs": false,
+  "tabWidth": 2,
+  "printWidth": 80,
+  "singleQuote": true,
+  "trailingComma": "none",
+  "semi": false,
+  "arrowParens": "avoid",
+  "space-before-function-paren": true
+}
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p>项目下新建<code>.prettierignore</code></p>
+<div><pre><code># 忽略格式化文件 (根据项目需要自行添加)
+node_modules
+dist
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div></div></div><h3 id="解决-prettier-和-eslint-的冲突" tabindex="-1"> 解决 Prettier 和 ESLint 的冲突</h3>
+<div><pre><code><span>npm</span> i eslint-plugin-prettier eslint-config-prettier -D
+</code></pre><div aria-hidden="true"><div></div></div></div><p>在<code>.eslintrc.js</code>添加 prettier 插件</p>
+<div><pre><code>module<span>.</span>exports <span>=</span> <span>{</span>
+  <span>...</span>
+<span>extends</span><span>:</span> <span>[</span>
+    <span>'plugin:vue/essential'</span><span>,</span>
+    <span>'standard'</span><span>,</span><span>'plugin:prettier/recommended'</span>
+  <span>]</span><span>,</span>
+  <span>...</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h3 id="husky-和-lint-staged-构建代码工作流" tabindex="-1"> husky 和 lint-staged 构建代码工作流</h3>
+<p>虽然我们已经要求项目使用 eslint 了，但是不能保证其它成员提交代码之前都将 eslint 中的问题解决掉了，也就是我们希望保证代码仓库中的代码都是符合 eslint 规范的。</p>
+<p>可以通过 Husky 工具在其它成员执行<code>git commit</code>命令的时候对其进行校验，如果不符合 eslint 规范，那么自动通过规范进行修复</p>
+<p>husky 是一个 git hook 工具，可以帮助我们触发 git 提交的各个阶段：pre-commit、commit-msg、pre-push</p>
+<p>使用自动配置命令：</p>
+<div><pre><code>npx husky-init <span>&amp;&amp;</span> <span>npm</span> <span>install</span>
+</code></pre><div aria-hidden="true"><div></div></div></div><h4 id="git-commit-规范" tabindex="-1"> git commit 规范</h4>
+<p>Commitizen 是一个帮助我们编写规范 commit message 的工具，使用 Commitizen 工具按照统一的风格来 git commit，这样可以快速定位每次提交的内容，方便之后对版本进行控制</p>
+<p>安装 Commitizen</p>
+<div><pre><code><span>npm</span> <span>install</span> commitizen -D
+</code></pre><div aria-hidden="true"><div></div></div></div><p>安装 cz-conventional-changelog，并且初始化 cz-conventional-changelog：</p>
+<div><pre><code>npx commitizen init cz-conventional-changelog --save-dev --save-exact
+</code></pre><div aria-hidden="true"><div></div></div></div><p>在<code>package.json</code>中配置一个 scripts：</p>
+<div><pre><code><span>{</span>
+  <span>"commit"</span><span>:</span> <span>"cz"</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div></div></div><p>每次<code>npm run commit</code>进行代码提交</p>
+<h4 id="代码提交验证" tabindex="-1"> 代码提交验证</h4>
+<p>如果我们按照 cz 来规范了提交风格，但是依然有其它成员通过 <code>git commit</code> 按照不规范的格式提交应该怎么办呢？</p>
+<p>通过 commitlint 来限制提交</p>
+<p>安装 @commitlint/config-conventional 和 @commitlint/cli</p>
+<div><pre><code><span>npm</span> i @commitlint/config-conventional @commitlint/cli -D
+</code></pre><div aria-hidden="true"><div></div></div></div><p>在根目录创建<code>commitlint.config.js</code>文件，配置 commitlint</p>
+<div><pre><code>module<span>.</span>exports <span>=</span> <span>{</span>
+  <span>extends</span><span>:</span> <span>[</span><span>'@commitlint/config-conventional'</span><span>]</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div></div></div><p>使用 husky 生成 commit-msg 文件，验证提交信息</p>
+<div><pre><code>npx husky <span>add</span> .husky/commit-msg <span>"npx --no-install commitlint --edit <span>$1</span>"</span>
+</code></pre><div aria-hidden="true"><div></div></div></div><h4 id="安装-lint-staged" tabindex="-1"> 安装 lint-staged</h4>
+<div><pre><code><span>npm</span> i lint-staged -D
+</code></pre><div aria-hidden="true"><div></div></div></div><p>修改<code>./husky/pre-commit</code>钩子</p>
+<div><pre><code>npx lint-staged
+
+</code></pre><div aria-hidden="true"><div></div><div></div></div></div><p>在<code>package.json</code>中配置</p>
+<div><pre><code><span>"lint-staged"</span><span>:</span> <span>{</span>
+  <span>"src/**/*.{js,jsx,ts,.tsx,vue,html,md}"</span><span>:</span> <span>"eslint --config .eslintrc.js"</span><span>,</span>
+<span>}</span>
+
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div></div></div>]]></content:encoded>
+    </item>
+    <item>
+      <title>预编译、作用域、作用链</title>
+      <link>https://www.zhanggin.work/docs/20220618.html</link>
+      <guid>https://www.zhanggin.work/docs/20220618.html</guid>
+      <source url="https://www.zhanggin.work/rss.xml">预编译、作用域、作用链</source>
+      <category>前端</category>
+      <pubDate>Sat, 18 Jun 2022 00:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<h2 id="作用域" tabindex="-1"> 作用域</h2>
+<p>作用域定义：变量(变量作用域又称上下文)和函数生效(能被访问)的区域</p>
+<p>通常来说，一段程序代码中所用到的名字并不总是有效和可用的，而限定这个名字的<strong>可用性的代码范围</strong>就是这个名字的<strong>作用域</strong>。作用域的使用提高了程序逻辑的局部性，增强了程序的可靠性，减少了名字冲突。</p>
+<p>JavaScript（es6 前）中的作用域有两种：</p>
+<ul>
+<li>全局作用域</li>
+<li>局部作用域（函数作用域）</li>
+</ul>
+<p>全局作用域：作用于所有代码执行的环境(整个 script 标签内部)或者一个独立的 js 文件。</p>
+<p>局部作用域（函数作用域）：作用于函数内的代码环境，就是局部作用域。因为跟函数有关系，所以也称为函数作用域。</p>
+<h2 id="变量的作用域" tabindex="-1"> 变量的作用域</h2>
+<p>变量作用域的分类，在 JavaScript 中，根据作用域的不同，变量可以分为两种：</p>
+<ul>
+<li>全局变量</li>
+<li>局部变量</li>
+</ul>
+<p>在全局作用域下声明的变量叫做<strong>全局变量（在函数外部定义的变量）</strong>。</p>
+<ul>
+<li>全局变量在代码的任何位置都可以使用</li>
+<li>在全局作用域下 var 声明的变量 是全局变量</li>
+<li>特殊情况下，在函数内不使用 var 声明的变量也是全局变量（不建议使用）</li>
+</ul>
+<p>在局部作用域下声明的变量叫做<strong>局部变量（在函数内部定义的变量）</strong></p>
+<ul>
+<li>局部变量只能在该函数<strong>内部</strong>使用</li>
+<li>在函数内部 var 声明的变量是局部变量</li>
+<li>函数的<strong>形参</strong>实际上就是局部变量</li>
+</ul>
+<p>全局变量和局部变量的区别：</p>
+<ul>
+<li>全局变量：在任何一个地方都可以使用，只有在浏览器关闭时才会被销毁，因此比较占内存</li>
+<li>局部变量：只在函数内部使用，当其所在的代码块被执行时，会被初始化；当代码块运行结束后，就会被销毁，因此更节省内存空间</li>
+</ul>
+<h2 id="预编译前奏" tabindex="-1"> 预编译前奏</h2>
+<h3 id="js-运行三部曲" tabindex="-1"> js 运行三部曲</h3>
+<ol>
+<li>语法分析</li>
+<li>预编译</li>
+<li>解释执行</li>
+</ol>
+<p>声明函数后调用函数、声明函数前调用函数都可以执行，因为有预编译的存在</p>
+<p><img src="@source/docs/20220618/2022-06-18-14-59-27.png" alt=""></p>
+<p><img src="@source/docs/20220618/2022-06-18-15-00-03.png" alt=""></p>
+<p><strong>函数声明整体提升</strong>:函数不管写到哪里，都会被提到逻辑的最前面。所以不管在哪里调用，本质上都是在后面调用</p>
+<p><strong>变量声明提升</strong>：把<code>var a</code>提升到最前面</p>
+<div><pre><code><span>var</span> a <span>=</span> <span>123</span> <span>// 这是变量声明再赋值。</span>
+<span>// 变量声明提升是把他拆分成以下步骤：</span>
+<span>var</span> a
+a <span>=</span> <span>123</span> <span>// 然后把 var a 提升到最前面</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div></div></div><p><img src="@source/docs/20220618/2022-06-18-15-00-36.png" alt=""></p>
+<p><img src="@source/docs/20220618/2022-06-18-15-00-55.png" alt=""></p>
+<p><img src="@source/docs/20220618/2022-06-18-15-01-22.png" alt=""></p>
+<p><strong>imply global 暗示全局变量</strong>：即任何变量，如果变量未经声明就赋值，此变量就为全局对象(全局对象是 window)所有。</p>
+<p><strong>一切声明的全局变量，全是 window 的属性</strong>。</p>
+<div><pre><code><span>function</span> <span>test</span><span>(</span><span>)</span> <span>{</span>
+  <span>var</span> a <span>=</span> <span>(</span>b <span>=</span> <span>123</span><span>)</span>
+<span>}</span>
+<span>test</span><span>(</span><span>)</span>
+<span>// console.log(a); // 报错</span>
+console<span>.</span><span>log</span><span>(</span>b<span>)</span> <span>// 123</span>
+<span>// var a = b = 123;变量赋值自右向左，先将123 赋值给b,然后声明变量a,把b赋值给a</span>
+<span>// 在这个过程中，b未经声明就赋值，任何变量未经声明就赋值，这个变量为全局对象所有。所以打印b为123。</span>
+<span>// 访问 window.a 是 undefined，访问 window.b 是 123</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p>预编译(解决执行顺序问题)发生在函数执行的前一刻</p>
+<h3 id="函数-预编译的四部曲" tabindex="-1"> (函数)预编译的四部曲</h3>
+<ol>
+<li>创建 AO（Activation Object） 对象</li>
+<li>找形参和变量声明，将变量和形参名作为 AO 属性名，值为 undefined
+相当于 <code>AO { a : undefined, b : undefined }</code></li>
+<li>将实参值和形参统一(把实参值传到形参里)</li>
+<li>在函数体里面找函数声明，值赋予函数体(先看自己的 AO，再看全局的 GO)</li>
+</ol>
+<div><pre><code><span>function</span> <span>fn</span><span>(</span><span>a</span><span>)</span> <span>{</span>
+  console<span>.</span><span>log</span><span>(</span>a<span>)</span> <span>// function a() { }</span>
+  <span>var</span> a <span>=</span> <span>123</span>
+  console<span>.</span><span>log</span><span>(</span>a<span>)</span> <span>// 123</span>
+  <span>function</span> <span>a</span><span>(</span><span>)</span> <span>{</span><span>}</span>
+  console<span>.</span><span>log</span><span>(</span>a<span>)</span> <span>// 123</span>
+  <span>var</span> <span>b</span> <span>=</span> <span>function</span> <span>(</span><span>)</span> <span>{</span><span>}</span>
+  console<span>.</span><span>log</span><span>(</span>b<span>)</span> <span>// function () { }</span>
+  <span>function</span> <span>d</span><span>(</span><span>)</span> <span>{</span><span>}</span>
+<span>}</span>
+<span>fn</span><span>(</span><span>1</span><span>)</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p>这个例子的形参是（a），变量声明也是 a</p>
+<p>上面的例子按四部曲变化如下:</p>
+<ol>
+<li>创建 AO 对象（Activation Object）（执行期上下文）,<code>AO = {}</code></li>
+<li>找形参和变量声明，将变量和形参（a）名作为 AO 属性名，值为 undefined。<code>AO = { a: undefined, b: undefined }</code></li>
+<li>将实参值和形参统一。<code>AO = { a: 1, b: undefined }</code></li>
+<li>在函数体里面找函数声明，值赋予函数体。<code>function a () {}</code>和 <code>function d () {}</code>都是函数声明，但是 <code>var b = function (){}</code>不是。<code>AO = { a: function a () {}, b: undefined, d: function d() {} }</code></li>
+</ol>
+<p>执行第一行 <code>console.log(a);</code>时，用的是<code>AO = { a: function a () {}, b: undefined, d: function d() {} }</code></p>
+<p>执行 <code>var a =123;</code>改变的是<code>AO = { a: 123, b: undefined, d: function d() {} }</code></p>
+<p>在 <code>b = function (){}</code>时，<code>AO = { a: 123, b: function () {}, d: function d() {} }</code></p>
+<p>全局的预编译三部曲：</p>
+<ol>
+<li>生成了一个 GO 的对象 Global Object（window 就是 GO）</li>
+<li>找形参和变量声明，将变量和形参名作为 GO 属性名，值为 undefined</li>
+<li>在函数体里面找函数声明，值赋予函数体</li>
+</ol>
+<p>任何全局变量都是 window 上的属性</p>
+<p>没有声明就赋值了，归 window 所有，就是在 GO 里面预编译</p>
+<div><pre><code><span>function</span> <span>test</span><span>(</span><span>)</span> <span>{</span>
+  <span>var</span> a <span>=</span> <span>(</span>b <span>=</span> <span>123</span><span>)</span>
+  console<span>.</span><span>log</span><span>(</span>window<span>.</span>b<span>)</span>
+  console<span>.</span><span>log</span><span>(</span>a<span>)</span>
+<span>}</span>
+<span>test</span><span>(</span><span>)</span>
+console<span>.</span><span>log</span><span>(</span>b<span>)</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p>先生成 GO 还是 AO?</p>
+<p>想执行全局，先生成 GO，在执行 test 的前一刻生成 AO</p>
+<p>几层嵌套关系，近的优先，从近的到远的，有 AO 就看 AO，AO 没有才看 GO</p>
+<p>先生成 <code>GO = { b : 123 }</code>，再有 <code>AO = { a : undefined }</code></p>
+<h2 id="作用域链" tabindex="-1"> 作用域链</h2>
+<p><strong>[[scope]]</strong>：每个 javascript 函数都是一个对象，对象中有些属性我们可以访问，但有些不可以，这些属性仅供 javascript 引擎存取，[[scope]]就是其中一个。</p>
+<p><strong>[[scope]]指的就是我们所说的作用域,其中存储了运行期上下文的集合</strong>。</p>
+<p><strong>作用域链</strong>：[[scope]]中所存储的执行期上下文对象的集合，这个集合呈链式链接，我 们把这种链式链接叫做作用域链。</p>
+<p><strong>运行期上下文</strong>：当函数执行时，会创建一个称为<strong>执行期上下文</strong>的内部对象。一个执行期上下文定义了一个函数执行时的环境，函数每次执行时的执行上下文都是独一无二的，所以多次调用一个函数会导致创建多个执行上下文，函数每次执行时，都会把新生成的执行期上下文，填充到作用域链的最顶端。当函数执行完毕，它所产生的执行上下文被销毁。</p>
+<p><strong>查找变量</strong>：在哪个函数里面查找变量，就从哪个函数作用域链的顶端依次向下查找。</p>
+<div><pre><code><span>function</span> <span>a</span><span>(</span><span>)</span> <span>{</span>
+  <span>function</span> <span>b</span><span>(</span><span>)</span> <span>{</span>
+    <span>var</span> b <span>=</span> <span>234</span>
+  <span>}</span>
+  <span>var</span> a <span>=</span> <span>123</span>
+  <span>b</span><span>(</span><span>)</span>
+<span>}</span>
+<span>var</span> glob <span>=</span> <span>100</span>
+<span>a</span><span>(</span><span>)</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p>a 函数被定义时，发生如下过程：</p>
+<p><img src="@source/docs/20220618/2022-06-18-15-02-04.png" alt=""></p>
+<p>a 函数被执行时，发生如下过程：</p>
+<p><img src="@source/docs/20220618/2022-06-18-15-02-41.png" alt=""></p>
+<p>b 函数被创建时，发生如下过程：</p>
+<p><img src="@source/docs/20220618/2022-06-18-15-03-09.png" alt=""></p>
+<p>b 函数被执行时，发生如下过程：</p>
+<p><img src="@source/docs/20220618/2022-06-18-15-03-34.png" alt=""></p>
+<p>当函数执行完毕，会干掉自己的 AO，回到被创建时的状态。</p>
+<div><pre><code><span>function</span> <span>a</span><span>(</span><span>)</span> <span>{</span>
+  <span>function</span> <span>b</span><span>(</span><span>)</span> <span>{</span>
+    <span>function</span> <span>c</span><span>(</span><span>)</span> <span>{</span><span>}</span>
+    <span>c</span><span>(</span><span>)</span>
+  <span>}</span>
+  <span>b</span><span>(</span><span>)</span>
+<span>}</span>
+<span>a</span><span>(</span><span>)</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p>当 c 执行完后，会干掉自己的 c 的 AO，回到 c 被定义的状态，当 c 再被执行时，会生成一个新的 new 的 c 的 AO 对象，其余都一样，因为基础都是 c 的被定义状态</p>
+<p>如果 <code>function a</code> 不被执行，下面的 <code>function b</code> 和 <code>function c</code> 都是看不到的（也不会被执行，被折叠）。只有 <code>function a</code> 被执行，才能执行 <code>function a</code> 里面的内容 <code>a();</code>不执行，根本看不到 <code>function a (){}</code>里面的内容</p>
+]]></content:encoded>
+    </item>
+    <item>
+      <title>ts进阶之typeof、keyof、const</title>
+      <link>https://www.zhanggin.work/docs/20220623.html</link>
+      <guid>https://www.zhanggin.work/docs/20220623.html</guid>
+      <source url="https://www.zhanggin.work/rss.xml">ts进阶之typeof、keyof、const</source>
+      <category>前端</category>
+      <pubDate>Thu, 23 Jun 2022 00:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<h2 id="keyof" tabindex="-1"> keyof</h2>
+<p>keyof 操作符可以用于获取某种类型的所有键，其返回类型是联合类型。</p>
+<div><pre><code><span>interface</span> <span>Person</span> <span>{</span>
+  name<span>:</span> <span>string</span>
+  age<span>:</span> <span>number</span>
+  gender<span>:</span> <span>string</span>
+<span>}</span>
+
+<span>type</span> <span><span>K1</span></span> <span>=</span> <span>keyof</span> Person
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p><img src="@source/docs/20220623/2022-06-23-13-34-41.png" alt=""></p>
+<p>keyof 操作符除了支持接口和类之外，它也支持基本数据类型：</p>
+<p><img src="@source/docs/20220623/2022-06-23-13-37-38.png" alt=""></p>
+<p><img src="@source/docs/20220623/2022-06-23-13-38-49.png" alt=""></p>
+<p>此外 keyof 也称为输入索引类型查询，与之相对应的是索引访问类型，也称为查找类型。在语法上，它们看起来像属性或元素访问，但最终会被转换为类型：</p>
+<div><pre><code><span>interface</span> <span>Person</span> <span>{</span>
+  name<span>:</span> <span>string</span>
+  age<span>:</span> <span>number</span>
+  gender<span>:</span> <span>string</span>
+<span>}</span>
+
+<span>type</span> <span><span>P1</span></span> <span>=</span> Person<span>[</span><span>'age'</span><span>]</span> <span>// P1类型为number</span>
+<span>type</span> <span><span>P2</span></span> <span>=</span> Person<span>[</span><span>'name'</span> <span>|</span> <span>'age'</span><span>]</span> <span>// string | number</span>
+<span>type</span> <span><span>P3</span></span> <span>=</span> <span>string</span><span>[</span><span>'charAt'</span><span>]</span> <span>// (pos: number) => string</span>
+<span>type</span> <span><span>P4</span></span> <span>=</span> <span>string</span><span>[</span><span>]</span><span>[</span><span>'push'</span><span>]</span> <span>// (...items: string[]) => number</span>
+<span>type</span> <span><span>P5</span></span> <span>=</span> <span>string</span><span>[</span><span>]</span><span>[</span><span>0</span><span>]</span> <span>// string</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p>在使用对象的数值属性时，我们也可以使用 keyof 关键字。如果我们定义一个带有数值属性的对象，那么我们既需要定义该属性，又需要使用数组语法访问该属性</p>
+<h2 id="typeof" tabindex="-1"> typeof</h2>
+<p>typeof 操作符可以用来获取一个变量或对象的类型</p>
+<div><pre><code><span>interface</span> <span>Person</span> <span>{</span>
+  name<span>:</span> <span>string</span>
+  age<span>:</span> <span>number</span>
+<span>}</span>
+
+<span>const</span> p<span>:</span> Person <span>=</span> <span>{</span> name<span>:</span> <span>''</span><span>,</span> age<span>:</span> <span>1</span> <span>}</span>
+
+<span>const</span> foo<span>:</span> <span>typeof</span> p <span>=</span> <span>{</span> name<span>:</span> <span>'cherry'</span><span>,</span> age<span>:</span> <span>18</span> <span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p><img src="@source/docs/20220623/2022-06-23-14-07-38.png" alt=""></p>
+<div><pre><code><span>const</span> person <span>=</span> <span>[</span><span>{</span> name<span>:</span> <span>'cherry'</span><span>,</span> age<span>:</span> <span>18</span> <span>}</span><span>]</span>
+
+<span>type</span> <span>p</span> <span>=</span> <span>typeof</span> person
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div></div></div><p><img src="@source/docs/20220623/2022-06-23-14-13-35.png" alt=""></p>
+<p>typeof 操作符用于获取变量的类型，因此这个操作符的后面接的始终是一个变量，且需要运用到类型定义当中</p>
+<h2 id="const-断言" tabindex="-1"> const 断言</h2>
+<p>当我们使用 const 断言构造新的字面量表达式时，我们可以向语言发出以下信号：</p>
+<ul>
+<li>该表达式中的字面类型不应被扩展</li>
+<li>对象字面量获取只读属性</li>
+<li>数组文字成为只读元组</li>
+</ul>
+<div><pre><code><span>const</span> locales <span>=</span> <span>[</span>
+  <span>{</span>
+    locale<span>:</span> <span>'zh-CN'</span><span>,</span>
+    language<span>:</span> <span>'中文'</span>
+  <span>}</span><span>,</span>
+  <span>{</span>
+    locale<span>:</span> <span>'en'</span><span>,</span>
+    language<span>:</span> <span>'English'</span>
+  <span>}</span>
+<span>]</span> <span>as</span> <span>const</span>
+
+<span>type</span> <span><span>K</span></span> <span>=</span> <span>typeof</span> locales<span>[</span><span>number</span><span>]</span><span>[</span><span>'locale'</span><span>]</span> <span>// type K = "zh-CN" | "en"</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p><img src="@source/docs/20220623/2022-06-23-15-25-28.png" alt=""></p>
+]]></content:encoded>
+    </item>
+  </channel>
+</rss>
