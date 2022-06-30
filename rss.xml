@@ -6,8 +6,8 @@
     <link>https://www.zhanggin.work/</link>
     <description>Gin's blog</description>
     <language>zh-CN</language>
-    <pubDate>Mon, 27 Jun 2022 03:17:16 GMT</pubDate>
-    <lastBuildDate>Mon, 27 Jun 2022 03:17:16 GMT</lastBuildDate>
+    <pubDate>Thu, 30 Jun 2022 04:24:42 GMT</pubDate>
+    <lastBuildDate>Thu, 30 Jun 2022 04:24:42 GMT</lastBuildDate>
     <generator>vuepress-plugin-feed2</generator>
     <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
     <category>config</category>
@@ -1323,6 +1323,94 @@ console<span>.</span><span>log</span><span>(</span>b<span>)</span>
 <span>type</span> <span><span>K</span></span> <span>=</span> <span>typeof</span> locales<span>[</span><span>number</span><span>]</span><span>[</span><span>'locale'</span><span>]</span> <span>// type K = "zh-CN" | "en"</span>
 </code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p><img src="@source/docs/20220623/2022-06-23-15-25-28.png" alt=""></p>
 ]]></content:encoded>
+    </item>
+    <item>
+      <title>ts进阶之高级类型</title>
+      <link>https://www.zhanggin.work/docs/20220630.html</link>
+      <guid>https://www.zhanggin.work/docs/20220630.html</guid>
+      <source url="https://www.zhanggin.work/rss.xml">ts进阶之高级类型</source>
+      <category>前端</category>
+      <pubDate>Thu, 30 Jun 2022 00:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<h2 id="索引签名" tabindex="-1"> 索引签名</h2>
+<p>如果定义任意属性的签名，可以使用索引签名完成</p>
+<div><pre><code><span>type</span> <span>Person</span> <span>=</span> <span>{</span>
+  <span>[</span>key<span>:</span> <span><span>`</span><span>change</span><span><span>${</span><span>string</span><span>}</span></span><span>`</span></span><span>]</span><span>:</span> <span>keyof</span> <span>any</span>
+  city<span>:</span> <span>string</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div></div></div><p>也可以使用 Record 工具类型来定义</p>
+<div><pre><code><span>type</span> <span>Person</span> <span>=</span> Record<span>&lt;</span><span>'city'</span> <span>|</span> <span><span>`</span><span>change</span><span><span>${</span><span>string</span><span>}</span></span><span>`</span></span><span>,</span> <span>string</span> <span>|</span> <span>number</span><span>></span>
+</code></pre><div aria-hidden="true"><div></div></div></div><p><img src="@source/docs/20220630/2022-06-30-09-22-24.png" alt=""></p>
+<h2 id="映射类型" tabindex="-1"> 映射类型</h2>
+<p>映射类型是一种泛型类型，可用于把原有的对象类型映射成新的对象类型。</p>
+<p>映射类型的语法如下：</p>
+<div><pre><code><span>{</span> <span>[</span> <span>P</span> <span>in</span> <span>K</span> <span>]</span> <span>:</span> <span>T</span> <span>}</span>
+</code></pre><div aria-hidden="true"><div></div></div></div><p>其中<code>P in K</code>类似于 JavaScript 中的<code>for...in</code>语句，用于遍历 K 类型中的所有类型，而 T 类型变量用于表示 TS 中的任意类型。</p>
+<div><pre><code><span>interface</span> <span>Info</span> <span>{</span>
+  name<span>:</span> <span>string</span>
+  age<span>:</span> <span>number</span>
+  gender<span>:</span> <span>string</span>
+<span>}</span>
+
+<span>type</span> <span>ReadOnlyInfo<span>&lt;</span><span>T</span><span>></span></span> <span>=</span> <span>{</span>
+  <span>readonly</span> <span>[</span><span>P</span> <span>in</span> <span>keyof</span> <span>T</span><span>]</span><span>:</span> <span>T</span><span>[</span><span>P</span><span>]</span>
+<span>}</span>
+
+<span>type</span> <span>Person</span> <span>=</span> ReadOnlyInfo<span>&lt;</span>Info<span>></span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><ul>
+<li><code>keyof T</code>：通过 keyof 操作符获取泛型 T 中所有 key，返回一个联合类型</li>
+<li><code>in</code>：类似 JS 中<code>for...in</code>中的 in，用来遍历目标类型的公开属性名</li>
+<li><code>T[P]</code>：是个索引访问类型（也称查找类型），获取泛型 T 中 P 类型，类似 JS 中的访问对象的方式</li>
+</ul>
+<p><img src="@source/docs/20220630/2022-06-30-11-06-41.png" alt=""></p>
+<p>工具类型 Partial、Readonlay、Required 等类型原理就是通过映射类型实现的</p>
+<h2 id="required" tabindex="-1"> Required</h2>
+<p>用来将类型的所有属性设置为必选属性</p>
+<div><pre><code><span>type</span> <span>Required<span>&lt;</span><span>T</span><span>></span></span> <span>=</span> <span>{</span>
+  <span>[</span><span>P</span> <span>in</span> <span>keyof</span> <span>T</span><span>]</span><span>-</span><span>?</span><span>:</span> <span>T</span><span>[</span><span>P</span><span>]</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div></div></div><p><code>-?</code>符号可以暂时理解为<strong>将可选属性转换为必选属性</strong></p>
+<h2 id="exclude" tabindex="-1"> Exclude</h2>
+<p>用来从指定的联合类型中排除指定类型</p>
+<div><pre><code><span>type</span> <span>Exclude<span>&lt;</span><span>T</span><span>,</span> <span>U</span><span>></span></span> <span>=</span> <span>T</span> <span>extends</span> <span><span>U</span></span> <span>?</span> <span>never</span> <span>:</span> <span>T</span>
+</code></pre><div aria-hidden="true"><div></div></div></div><div><pre><code><span>interface</span> <span>Info</span> <span>{</span>
+  name<span>:</span> <span>string</span>
+  age<span>:</span> <span>number</span>
+  gender<span>?</span><span>:</span> <span>string</span>
+<span>}</span>
+
+<span>type</span> <span>Person</span> <span>=</span> Exclude<span>&lt;</span><span>keyof</span> Info<span>,</span> <span>'name'</span><span>></span>
+<span>const</span> p<span>:</span> Person <span>=</span> <span>'gender'</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p><img src="@source/docs/20220630/2022-06-30-11-37-58.png" alt=""></p>
+<h2 id="extract" tabindex="-1"> Extract</h2>
+<p>用来从指定的类型中提取指定类型</p>
+<p><img src="@source/docs/20220630/2022-06-30-12-10-21.png" alt=""></p>
+<h2 id="pick" tabindex="-1"> Pick</h2>
+<p>用来从指定类型中选择指定属性并返回</p>
+<div><pre><code><span>type</span> <span>Pick<span>&lt;</span><span>T</span><span>,</span> <span>K</span> <span>extends</span> <span>keyof</span> <span>T</span><span>></span></span> <span>=</span> <span>{</span>
+  <span>[</span><span>P</span> <span>in</span> <span>K</span><span>]</span><span>:</span> <span>T</span><span>[</span><span>P</span><span>]</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div></div></div><div><pre><code><span>interface</span> <span>Info</span> <span>{</span>
+  name<span>:</span> <span>string</span>
+  age<span>:</span> <span>number</span>
+  gender<span>?</span><span>:</span> <span>string</span>
+<span>}</span>
+
+<span>type</span> <span>Person</span> <span>=</span> Pick<span>&lt;</span>Info<span>,</span> <span>'name'</span> <span>|</span> <span>'age'</span><span>></span> <span>// 相当于type Person = {name:string; age:number}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h2 id="omit" tabindex="-1"> Omit</h2>
+<p>使用 Omit 工具类型，我们可以很方便地过滤掉对象类型中不需要的属性</p>
+<div><pre><code><span>type</span> <span>Omit<span>&lt;</span><span>T</span><span>,</span> <span>K</span> <span>extends</span> <span>string</span> <span>|</span> <span>number</span> <span>|</span> <span>symbol</span><span>></span></span> <span>=</span> <span>{</span>
+  <span>[</span><span>P</span> <span>in</span> Exclude<span>&lt;</span><span>keyof</span> <span>T</span><span>,</span> <span>K</span><span>></span><span>]</span><span>:</span> <span>T</span><span>[</span><span>P</span><span>]</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div></div></div><div><pre><code><span>type</span> <span>User</span> <span>=</span> <span>{</span>
+  id<span>:</span> <span>number</span>
+  name<span>:</span> <span>string</span>
+  password<span>:</span> <span>string</span>
+  createdAt<span>:</span> Date
+  updatedAt<span>:</span> Date
+<span>}</span>
+
+<span>type</span> <span>RegisterUser</span> <span>=</span> Omit<span>&lt;</span>User<span>,</span> <span>'id'</span> <span>|</span> <span>'createdAt'</span> <span>|</span> <span>'updatedAt'</span><span>></span> <span>// 相当于type RegisterUser = {name: string; password: string;}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div>]]></content:encoded>
     </item>
   </channel>
 </rss>
