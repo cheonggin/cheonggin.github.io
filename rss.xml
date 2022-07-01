@@ -6,8 +6,8 @@
     <link>https://www.zhanggin.work/</link>
     <description>Gin's blog</description>
     <language>zh-CN</language>
-    <pubDate>Thu, 30 Jun 2022 04:24:42 GMT</pubDate>
-    <lastBuildDate>Thu, 30 Jun 2022 04:24:42 GMT</lastBuildDate>
+    <pubDate>Fri, 01 Jul 2022 09:29:04 GMT</pubDate>
+    <lastBuildDate>Fri, 01 Jul 2022 09:29:04 GMT</lastBuildDate>
     <generator>vuepress-plugin-feed2</generator>
     <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
     <category>config</category>
@@ -1411,6 +1411,140 @@ console<span>.</span><span>log</span><span>(</span>b<span>)</span>
 
 <span>type</span> <span>RegisterUser</span> <span>=</span> Omit<span>&lt;</span>User<span>,</span> <span>'id'</span> <span>|</span> <span>'createdAt'</span> <span>|</span> <span>'updatedAt'</span><span>></span> <span>// 相当于type RegisterUser = {name: string; password: string;}</span>
 </code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div>]]></content:encoded>
+    </item>
+    <item>
+      <title>ajax</title>
+      <link>https://www.zhanggin.work/docs/20220701.html</link>
+      <guid>https://www.zhanggin.work/docs/20220701.html</guid>
+      <source url="https://www.zhanggin.work/rss.xml">ajax</source>
+      <category>前端</category>
+      <pubDate>Fri, 01 Jul 2022 00:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<h2 id="ajax-前奏" tabindex="-1"> ajax 前奏</h2>
+<p>AJAX：Asynchronous JavaScript And XML 异步的 javascript 和 xml</p>
+<p>AJAX 是用 JavaScript 脚本发起 HTTP 通信</p>
+<p>JavaScript 异步通信：请求服务器返回 xml/json 文档，前端从 xml 文档中提取数据，再在不刷新整个网页的基础上，渲染到网页相应的位置</p>
+<h2 id="创建-xmlhttprequest-对象" tabindex="-1"> 创建 XMLHTTPREQUEST 对象</h2>
+<p>作用：js 脚本 http 请求的发起必须通过 XMLHttpRequest 对象，也是通过 AJAX 进行浏览器与服务器通信的接口，不局限于 XML，可以发送任何格式的数据</p>
+<p>XMLHttpRequest 本身是一个 js 引擎内置的构造函数，所有 XMLHttpRequest 对象都需要被实例化</p>
+<div><pre><code><span>var</span> xhr <span>=</span> <span>new</span> <span>XMLHttpRequest</span><span>(</span><span>)</span>
+</code></pre><div aria-hidden="true"><div></div></div></div><h2 id="ajax-发送-http-请求" tabindex="-1"> ajax 发送 http 请求</h2>
+<ul>
+<li>open 方法（发送设置）参数列表：
+<ul>
+<li>method：请求方式</li>
+<li>url：请求发送的地址</li>
+<li>async：true 异步，false 同步</li>
+</ul>
+</li>
+<li>send 方法（发送请求）,参数：
+<ul>
+<li>发送 post 请求体数据时使用，get 请求不填写</li>
+<li>post 请求方式下，send 方法参数中的格式：<code>'a=1&amp;b=2&amp;c=3'</code></li>
+<li><code>xhr.setRequestHeader('Content-type', 'application/json')</code>，post 请求方式必须设置这个请求头信息，目的是将请求体中的数据转换为键值对，这样后端接收到<code>'a=1&amp;b=2&amp;c=3'</code>才知道这是一个 post 方式传来的数据</li>
+</ul>
+</li>
+</ul>
+<h2 id="ajax-发送请求时的响应任务" tabindex="-1"> ajax 发送请求时的响应任务</h2>
+<p><code>onreadystatechange</code>事件：挂载到 XMLHttpRequest 对象上的事件
+<code>readyState</code>状态：通过 XMLHttpRequest 对象发送 HTTP 请求的各阶段状态码（0-4）
+<code>status</code>状态：服务器响应的状态码</p>
+<p>当<code>readyState</code>发生变化时，将触发<code>onreadystatechange</code>事件执行其回调函数</p>
+<ul>
+<li>0：请求未初始化</li>
+<li>1：服务器连接已建立</li>
+<li>2：请求已接收</li>
+<li>3：请求处理中</li>
+<li>4：请求已完成，且响应已就绪</li>
+</ul>
+<p><strong>注意</strong>：readyState 仅仅是针对请求与响应的状态码，获取资源是否成功取决于 status 的状态</p>
+<h2 id="ajax-服务器响应" tabindex="-1"> ajax 服务器响应</h2>
+<ul>
+<li>responseText：获取字符串数据</li>
+<li>responseXML：获取 XML 数据</li>
+</ul>
+<div><pre><code><span>var</span> xhr <span>=</span> <span>new</span> <span>XMLHttpRequest</span><span>(</span><span>)</span>
+
+console<span>.</span><span>log</span><span>(</span>xhr<span>.</span>readyState<span>)</span> <span>// 0</span>
+
+xhr<span>.</span><span>open</span><span>(</span><span>'get'</span><span>,</span> <span>'http://localhost:5001/page/home'</span><span>,</span> <span>true</span><span>)</span>
+
+console<span>.</span><span>log</span><span>(</span>xhr<span>.</span>readyState<span>)</span> <span>// 1</span>
+
+xhr<span>.</span><span>onreadystatechange</span> <span>=</span> <span>function</span> <span>(</span><span>)</span> <span>{</span>
+  console<span>.</span><span>log</span><span>(</span>xhr<span>.</span>readyState<span>)</span> <span>// 2 3 4</span>
+  <span>if</span> <span>(</span>xhr<span>.</span>readyState <span>===</span> <span>4</span> <span>&amp;&amp;</span> xhr<span>.</span>status <span>===</span> <span>200</span><span>)</span> <span>{</span>
+    console<span>.</span><span>log</span><span>(</span><span>JSON</span><span>.</span><span>parse</span><span>(</span>xhr<span>.</span>responseText<span>)</span><span>)</span>
+  <span>}</span>
+<span>}</span>
+
+xhr<span>.</span><span>send</span><span>(</span><span>)</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><div><pre><code><span>var</span> xhr <span>=</span> <span>new</span> <span>XMLHttpRequest</span><span>(</span><span>)</span>
+console<span>.</span><span>log</span><span>(</span>xhr<span>.</span>readyState<span>)</span> <span>// 0</span>
+
+xhr<span>.</span><span>open</span><span>(</span><span>'post'</span><span>,</span> <span>'http://localhost:5001/register'</span><span>,</span> <span>true</span><span>)</span>
+xhr<span>.</span><span>setRequestHeader</span><span>(</span><span>'Content-Type'</span><span>,</span> <span>'application/x-www-form-urlencoded'</span><span>)</span>
+console<span>.</span><span>log</span><span>(</span>xhr<span>.</span>readyState<span>)</span> <span>// 1</span>
+xhr<span>.</span><span>onreadystatechange</span> <span>=</span> <span>function</span> <span>(</span><span>)</span> <span>{</span>
+  console<span>.</span><span>log</span><span>(</span>xhr<span>.</span>readyState<span>)</span> <span>// 2 3 4</span>
+  <span>if</span> <span>(</span>xhr<span>.</span>readyState <span>===</span> <span>4</span> <span>&amp;&amp;</span> xhr<span>.</span>status <span>===</span> <span>201</span><span>)</span> <span>{</span>
+    console<span>.</span><span>log</span><span>(</span><span>JSON</span><span>.</span><span>parse</span><span>(</span>xhr<span>.</span>responseText<span>)</span><span>)</span>
+  <span>}</span>
+<span>}</span>
+
+xhr<span>.</span><span>send</span><span>(</span><span>'name=cherry3&amp;password=12345'</span><span>)</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h2 id="ajax-简易封装" tabindex="-1"> ajax 简易封装</h2>
+<div><pre><code><span>const</span> $ <span>=</span> <span>(</span><span>function</span> <span>(</span><span>)</span> <span>{</span>
+  <span>const</span> xhr <span>=</span> <span>new</span> <span>XMLHttpRequest</span><span>(</span><span>)</span>
+
+  <span>function</span> <span>_doAjax</span><span>(</span><span>opt</span><span>)</span> <span>{</span>
+    xhr<span>.</span><span>open</span><span>(</span>opt<span>.</span>method<span>,</span> opt<span>.</span>url<span>,</span> opt<span>.</span>async<span>)</span>
+
+    opt<span>.</span>method <span>===</span> <span>'POST'</span> <span>&amp;&amp;</span>
+      xhr<span>.</span><span>setRequestHeader</span><span>(</span><span>'Content-Type'</span><span>,</span> <span>'application/x-www-form-urlencoded'</span><span>)</span>
+
+    xhr<span>.</span><span>onreadystatechange</span> <span>=</span> <span>function</span> <span>(</span><span>)</span> <span>{</span>
+      <span>if</span> <span>(</span>xhr<span>.</span>readyState <span>===</span> <span>4</span> <span>&amp;&amp;</span> xhr<span>.</span>status <span>===</span> <span>200</span><span>)</span> <span>{</span>
+        opt<span>.</span><span>success</span><span>(</span><span>JSON</span><span>.</span><span>parse</span><span>(</span>xhr<span>.</span>responseText<span>)</span><span>)</span>
+      <span>}</span> <span>else</span> <span>{</span>
+        opt<span>.</span><span>fail</span><span>(</span><span>JSON</span><span>.</span><span>parse</span><span>(</span>xhr<span>.</span>responseText<span>)</span><span>)</span>
+      <span>}</span>
+    <span>}</span>
+
+    opt<span>.</span>method <span>===</span> <span>'POST'</span> <span>?</span> xhr<span>.</span><span>send</span><span>(</span><span>formatStr</span><span>(</span>opt<span>.</span>data<span>)</span><span>)</span> <span>:</span> xhr<span>.</span><span>send</span><span>(</span><span>)</span>
+  <span>}</span>
+
+  <span>function</span> <span>formatStr</span><span>(</span><span>obj</span><span>)</span> <span>{</span>
+    <span>let</span> str <span>=</span> <span>''</span>
+    <span>for</span> <span>(</span><span>const</span> key <span>in</span> obj<span>)</span> <span>{</span>
+      <span>if</span> <span>(</span>Object<span>.</span><span>hasOwnProperty</span><span>.</span><span>call</span><span>(</span>obj<span>,</span> key<span>)</span><span>)</span> <span>{</span>
+        str <span>+=</span> key <span>+</span> <span>'='</span> <span>+</span> obj<span>[</span>key<span>]</span> <span>+</span> <span>'&amp;'</span>
+      <span>}</span>
+    <span>}</span>
+
+    <span>return</span> str<span>.</span><span>replace</span><span>(</span><span><span>/</span><span>&amp;$</span><span>/</span></span><span>,</span> <span>''</span><span>)</span>
+  <span>}</span>
+
+  <span>return</span> <span>{</span>
+    <span>ajax</span><span>(</span><span>opt</span><span>)</span> <span>{</span>
+      opt<span>.</span>method <span>=</span> <span>(</span>opt<span>.</span>method <span>||</span> <span>'GET'</span><span>)</span><span>.</span><span>toUpperCase</span><span>(</span><span>)</span>
+      opt<span>.</span>async <span>=</span> opt<span>.</span>async <span>||</span> <span>true</span>
+      opt<span>.</span>success <span>=</span> opt<span>.</span>success <span>||</span> <span>function</span> <span>(</span><span>)</span> <span>{</span><span>}</span>
+      opt<span>.</span>fail <span>=</span> opt<span>.</span>fail <span>||</span> <span>function</span> <span>(</span><span>)</span> <span>{</span><span>}</span>
+
+      <span>_doAjax</span><span>(</span>opt<span>)</span>
+    <span>}</span>
+  <span>}</span>
+<span>}</span><span>)</span><span>(</span><span>)</span>
+
+$<span>.</span><span>ajax</span><span>(</span><span>{</span>
+  <span>method</span><span>:</span> <span>'get'</span><span>,</span>
+  <span>url</span><span>:</span> <span>'http://localhost:5001/page/home'</span><span>,</span>
+  <span>async</span><span>:</span> <span>true</span><span>,</span>
+  <span>success</span><span>(</span><span>data</span><span>)</span> <span>{</span>
+    console<span>.</span><span>log</span><span>(</span>data<span>)</span>
+  <span>}</span>
+<span>}</span><span>)</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div>]]></content:encoded>
     </item>
   </channel>
 </rss>
