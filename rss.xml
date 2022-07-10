@@ -6,8 +6,8 @@
     <link>https://www.zhanggin.work/</link>
     <description>Gin's blog</description>
     <language>zh-CN</language>
-    <pubDate>Fri, 01 Jul 2022 09:29:04 GMT</pubDate>
-    <lastBuildDate>Fri, 01 Jul 2022 09:29:04 GMT</lastBuildDate>
+    <pubDate>Sun, 10 Jul 2022 14:07:08 GMT</pubDate>
+    <lastBuildDate>Sun, 10 Jul 2022 14:07:08 GMT</lastBuildDate>
     <generator>vuepress-plugin-feed2</generator>
     <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
     <category>config</category>
@@ -1545,6 +1545,257 @@ $<span>.</span><span>ajax</span><span>(</span><span>{</span>
   <span>}</span>
 <span>}</span><span>)</span>
 </code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div>]]></content:encoded>
+    </item>
+    <item>
+      <title>ES6+易忘知识点总结</title>
+      <link>https://www.zhanggin.work/docs/20220710.html</link>
+      <guid>https://www.zhanggin.work/docs/20220710.html</guid>
+      <source url="https://www.zhanggin.work/rss.xml">ES6+易忘知识点总结</source>
+      <category>前端</category>
+      <pubDate>Sun, 10 Jul 2022 00:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<h2 id="es6" tabindex="-1"> ES6</h2>
+<h3 id="标签模板字符串" tabindex="-1"> 标签模板字符串</h3>
+<p>通常调用函数的方法是通过<code>()</code>，当使用``来调用时，称为标签模板字符串</p>
+<div><pre><code><span>function</span> <span>foo</span><span>(</span><span>x<span>,</span> y<span>,</span> z</span><span>)</span> <span>{</span>
+  console<span>.</span><span>log</span><span>(</span>x<span>,</span> y<span>,</span> z<span>)</span>
+<span>}</span>
+foo<span><span>`</span><span>`</span></span> <span>// [ '' ] undefined undefined</span>
+foo<span><span>`</span><span>HelloWorld</span><span>`</span></span> <span>// [ 'HelloWorld' ] undefined undefined</span>
+<span>const</span> name <span>=</span> <span>'kobe'</span>
+<span>const</span> age <span>=</span> <span>18</span>
+foo<span><span>`</span><span>Hello</span><span><span>${</span>name<span>}</span></span><span>Wo</span><span><span>${</span>age<span>}</span></span><span>rld</span><span>`</span></span> <span>// [ 'Hello', 'Wo', 'rld' ] 'kobe' 18</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><ul>
+<li>第一个参数依然是模块字符串中整个字符串，只是被切成多块，放到了一个数组中</li>
+<li>第二个参数是模块字符串中的第一个<code>${}</code>，依次类推</li>
+</ul>
+<h3 id="symbol" tabindex="-1"> Symbol</h3>
+<p>Symbol 是 ES6 中新增的一个基本数据类型</p>
+<div><pre><code><span>const</span> s1 <span>=</span> <span>Symbol</span><span>(</span><span>)</span>
+<span>const</span> s2 <span>=</span> <span>Symbol</span><span>(</span><span>)</span>
+<span>const</span> s3 <span>=</span> <span>Symbol</span><span>(</span><span>'name'</span><span>)</span>
+
+console<span>.</span><span>log</span><span>(</span>s1 <span>==</span> s2<span>)</span> <span>// false</span>
+console<span>.</span><span>log</span><span>(</span>s3<span>.</span>description<span>)</span> <span>// name</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p>作为对象属性时不能通过<code>.</code>语法获取</p>
+<div><pre><code><span>const</span> name1 <span>=</span> <span>Symbol</span><span>(</span><span>)</span>
+<span>const</span> age <span>=</span> <span>Symbol</span><span>(</span><span>)</span>
+<span>const</span> gender <span>=</span> <span>Symbol</span><span>(</span><span>'gender'</span><span>)</span>
+<span>const</span> person <span>=</span> <span>{</span>
+  <span>[</span>name1<span>]</span><span>:</span> <span>'kobe'</span><span>,</span>
+  <span>[</span>age<span>]</span><span>:</span> <span>18</span>
+<span>}</span>
+console<span>.</span><span>log</span><span>(</span>person<span>.</span>name1<span>)</span> <span>// undefined</span>
+person<span>.</span>name1 <span>=</span> <span>'cherry'</span>
+person<span>[</span>gender<span>]</span> <span>=</span> <span>'female'</span>
+console<span>.</span><span>log</span><span>(</span>person<span>)</span> <span>// { name1: "cherry", Symbol(): "kobe", Symbol(): 18, Symbol(gender): "female"}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p>使用 Symbol 作为 key 的属性名，在遍历或<code>Object.keys</code>等中是获取不到这些 Symbol 值，需要<code>Object.getOwnPropertySymbols</code>方法来获取所有 Symbol 的 key</p>
+<div><pre><code>console<span>.</span><span>log</span><span>(</span>Object<span>.</span><span>keys</span><span>(</span>person<span>)</span><span>)</span> <span>// ['name1']</span>
+console<span>.</span><span>log</span><span>(</span>Object<span>.</span><span>getOwnPropertyNames</span><span>(</span>person<span>)</span><span>)</span> <span>// ['name1']</span>
+console<span>.</span><span>log</span><span>(</span>Object<span>.</span><span>getOwnPropertySymbols</span><span>(</span>person<span>)</span><span>)</span> <span>// [Symbol(), Symbol(), Symbol(gender)]</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div></div></div><p>创建相同的 Symbol 可以使用<code>Symbol.for</code>方法来创建，并且可以通过<code>Symbol.keyFor</code>方法来获取对应的 key</p>
+<div><pre><code><span>const</span> sa <span>=</span> Symbol<span>.</span><span>for</span><span>(</span><span>'aaa'</span><span>)</span>
+<span>const</span> sb <span>=</span> Symbol<span>.</span><span>for</span><span>(</span><span>'aaa'</span><span>)</span>
+console<span>.</span><span>log</span><span>(</span>sa <span>===</span> sb<span>)</span> <span>// true</span>
+<span>const</span> key <span>=</span> Symbol<span>.</span><span>keyFor</span><span>(</span>sa<span>)</span>
+console<span>.</span><span>log</span><span>(</span>key<span>)</span> <span>// 'aaa'</span>
+<span>const</span> sc <span>=</span> Symbol<span>.</span><span>for</span><span>(</span>key<span>)</span>
+console<span>.</span><span>log</span><span>(</span>sa <span>===</span> sc<span>)</span> <span>// true</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h3 id="set" tabindex="-1"> Set</h3>
+<p>在 ES6 之前，我们存储数据的结构主要有两种：数组、对象。在 ES6 中新增了另外两种数据结构:Set、Map，以及它们的另外形式 WeakSet、WeakMap</p>
+<p>Set 是一个新增的数据结构，可以用来保存数据，类似于数组，但是和数组的区别是元素不能重复。创建 Set 我们需要通过 Set 构造函数</p>
+<div><pre><code><span>const</span> arr <span>=</span> <span>[</span><span>1</span><span>,</span> <span>3</span><span>,</span> <span>5</span><span>,</span> <span>9</span><span>,</span> <span>5</span><span>,</span> <span>3</span><span>,</span> <span>7</span><span>]</span>
+
+<span>const</span> s <span>=</span> <span>new</span> <span>Set</span><span>(</span>arr<span>)</span> <span>// Set(5) { 1, 3, 5, 9, 7 }</span>
+<span>const</span> newArr <span>=</span> Array<span>.</span><span>from</span><span>(</span>s<span>)</span>
+<span>const</span> newArr1 <span>=</span> <span>[</span><span>...</span>s<span>]</span>
+console<span>.</span><span>log</span><span>(</span>newArr<span>)</span> <span>// [1, 3, 5, 9, 7]</span>
+console<span>.</span><span>log</span><span>(</span>newArr1<span>)</span> <span>// [1, 3, 5, 9, 7]</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h4 id="set-的常见方法" tabindex="-1"> Set 的常见方法</h4>
+<ul>
+<li>Set 常见的属性
+<ul>
+<li>size：返回 Set 中元素的个数</li>
+</ul>
+</li>
+<li>Set 常用的方法
+<ul>
+<li><code>add(value)</code>：添加某个元素，返回 Set 对象本身</li>
+<li><code>delete(value)</code>：从 set 中删除和这个值相等的元素，返回 boolean 类型</li>
+<li><code>has(value)</code>：判断 set 中是否存在某个元素，返回 boolean 类型</li>
+<li><code>clear()</code>：清空 set 中所有的元素，没有返回值</li>
+<li><code>forEach(callback, [, thisArg])</code>：通过 forEach 遍历 set</li>
+</ul>
+</li>
+</ul>
+<div><pre><code>console<span>.</span><span>log</span><span>(</span>s<span>.</span>size<span>)</span>
+s<span>.</span><span>add</span><span>(</span><span>8</span><span>)</span>
+console<span>.</span><span>log</span><span>(</span>s<span>)</span> <span>// Set(6) { 1, 3, 5, 9, 7, 8 }</span>
+s<span>.</span><span>delete</span><span>(</span><span>3</span><span>)</span>
+console<span>.</span><span>log</span><span>(</span><span>[</span><span>...</span>s<span>]</span><span>)</span> <span>// [1, 5, 9, 7, 8]</span>
+console<span>.</span><span>log</span><span>(</span>s<span>.</span><span>has</span><span>(</span><span>5</span><span>)</span><span>)</span> <span>// true</span>
+s<span>.</span><span>forEach</span><span>(</span><span>val</span> <span>=></span> <span>{</span>
+  console<span>.</span><span>log</span><span>(</span>val<span>)</span>
+<span>}</span><span>)</span>
+<span>for</span> <span>(</span><span>const</span> item <span>of</span> s<span>)</span> <span>{</span>
+  console<span>.</span><span>log</span><span>(</span>item<span>)</span>
+<span>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h3 id="weakset" tabindex="-1"> WeakSet</h3>
+<p>和 Set 类似的另外一个数据结构称之为 WeakSet，也是内部元素不能重复的数据结构</p>
+<p>Set 和 WeakSet 区别：</p>
+<ul>
+<li>WeakSet 中只能存放对象类型，不能存放基本数据类型</li>
+<li>WeakSet 对元素的引用是弱引用，如果没有其他引用对某个对象进行引用，那么 GC 可以对该对象进行回收</li>
+<li>WeakSet 不能遍历，因为 WeakSet 只是对对象的弱引用，如果我们遍历获取到其中的元素，那么有可能造成对象不能正常的销毁，所以存储到 WeakSet 中的对象是没办法获取的</li>
+</ul>
+<h3 id="map" tabindex="-1"> Map</h3>
+<p>Map 用于存储映射关系</p>
+<p>对象存储映射关系可以使用字符串或 Symbol 作为属性名。某些情况下我们可能希望通过其他类型作为 key，比如对象，这个时候会自动将对象转成字符串来作为 key，我们就可以使用 Map</p>
+<h4 id="map-的常用方法" tabindex="-1"> Map 的常用方法</h4>
+<ul>
+<li>Map 常见的属性
+<ul>
+<li>size：返回 Map 中元素的个数</li>
+</ul>
+</li>
+<li>Map 常见的方法
+<ul>
+<li><code>set(key, value)</code>：在 Map 中添加 key、value，并且返回整个 Map 对象</li>
+<li><code>get(key)</code>：根据 key 获取 Map 中的 value</li>
+<li><code>has(key)</code>：判断是否包括某一个 key，返回 Boolean 类型</li>
+<li><code>delete(key)</code>：根据 key 删除一个键值对，返回 Boolean 类型</li>
+<li><code>clear()</code>：清空所有的元素</li>
+</ul>
+</li>
+</ul>
+<h3 id="weakmap" tabindex="-1"> WeakMap</h3>
+<p>和 Map 类型的另外一个数据结构称之为 WeakMap，也是以键值对的形式存在的</p>
+<p>WeakMap 和 Map 的区别：</p>
+<ul>
+<li>WeakMap 的 key 只能使用对象，不接受其他的类型作为 key</li>
+<li>WeakMap 的 key 对对象想的引用是弱引用，如果没有其他引用引用这个对象，那么 GC 可以回收该对象</li>
+</ul>
+<h2 id="es10" tabindex="-1"> ES10</h2>
+<h3 id="flat" tabindex="-1"> flat</h3>
+<p><code>flat()</code>方法会按照一个可指定的深度递归遍历数组，并将所有元素与遍历到的子数组中的元素合并为一个新数组返回</p>
+<div><pre><code><span>const</span> arr1 <span>=</span> <span>[</span><span>0</span><span>,</span> <span>1</span><span>,</span> <span>2</span><span>,</span> <span>[</span><span>[</span><span>3</span><span>,</span> <span>4</span><span>]</span><span>,</span> <span>[</span><span>5</span><span>]</span><span>]</span><span>]</span>
+console<span>.</span><span>log</span><span>(</span>arr1<span>.</span><span>flat</span><span>(</span><span>2</span><span>)</span><span>)</span> <span>// [0, 1, 2, 3, 4, 5]</span>
+</code></pre><div aria-hidden="true"><div></div><div></div></div></div><h3 id="flatmap" tabindex="-1"> flatMap</h3>
+<p><code>flatMap()</code>方法首先使用映射函数映射每个元素，然后将结果压缩成一个新数组。它与 map 连着深度值为 1 的 flat 几乎相同，但 flatMap 通常在合并成一种方法的效率稍微高一些。</p>
+<div><pre><code><span>const</span> message <span>=</span> <span>[</span><span>'hello world'</span><span>,</span> <span>'hello vue'</span><span>,</span> <span>'hello react'</span><span>]</span>
+
+<span>const</span> result1 <span>=</span> message<span>.</span><span>map</span><span>(</span><span>item</span> <span>=></span> <span>{</span>
+  <span>return</span> item<span>.</span><span>split</span><span>(</span><span>' '</span><span>)</span>
+<span>}</span><span>)</span>
+
+<span>const</span> result2 <span>=</span> message<span>.</span><span>flatMap</span><span>(</span><span>item</span> <span>=></span> <span>{</span>
+  <span>return</span> item<span>.</span><span>split</span><span>(</span><span>' '</span><span>)</span>
+<span>}</span><span>)</span>
+
+console<span>.</span><span>log</span><span>(</span>result1<span>)</span> <span>// [ [ 'hello', 'world' ], [ 'hello', 'vue' ], [ 'hello', 'react' ] ]</span>
+console<span>.</span><span>log</span><span>(</span>result2<span>)</span> <span>// ['hello', 'world', 'hello', 'vue', 'hello', 'react']</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h3 id="object-fromentires" tabindex="-1"> Object.fromEntires</h3>
+<p><code>Object.fromEntries()</code>方法把键值对列表转换为一个对象</p>
+<div><pre><code><span>const</span> person <span>=</span> <span>{</span>
+  <span>name</span><span>:</span> <span>'cherry'</span><span>,</span>
+  <span>age</span><span>:</span> <span>19</span>
+<span>}</span>
+
+<span>const</span> entries <span>=</span> Object<span>.</span><span>entries</span><span>(</span>person<span>)</span>
+console<span>.</span><span>log</span><span>(</span>entries<span>)</span> <span>// [ [ 'name', 'cherry' ], [ 'age', 19 ] ]</span>
+<span>const</span> result <span>=</span> Object<span>.</span><span>fromEntries</span><span>(</span>entries<span>)</span>
+console<span>.</span><span>log</span><span>(</span>result<span>)</span> <span>// { name: 'cherry', age: 19 }</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h2 id="es11" tabindex="-1"> ES11</h2>
+<h3 id="bigint" tabindex="-1"> BigInt</h3>
+<p>BigInt 是一种内置对象，它提供了一种方法来表示大于 2^53 - 1 的整数。这原本是 Javascript 中可以用 Number 表示的最大数字。BigInt 可以表示任意大的整数</p>
+<p>可以用在一个整数字面量后面加 n 的方式定义一个 BigInt ，如：10n，或者调用函数 BigInt()（但不包含 new 运算符）并传递一个整数值或字符串值</p>
+<p>使用 typeof 测试时， BigInt 对象返回 &quot;bigint&quot;</p>
+<p>使用 Object 包装后， BigInt 被认为是一个普通 &quot;object&quot;</p>
+<div><pre><code>console<span>.</span><span>log</span><span>(</span><span>typeof</span> <span>1n</span><span>)</span> <span>// 'bigint'</span>
+</code></pre><div aria-hidden="true"><div></div></div></div><h3 id="空值合并运算符" tabindex="-1"> 空值合并运算符</h3>
+<p>空值合并操作符（??）是一个逻辑操作符，当左侧的操作数为 null 或者 undefined 时，返回其右侧操作数，否则返回左侧操作数。</p>
+<div><pre><code><span>const</span> foo <span>=</span> <span>undefined</span>
+<span>const</span> foo1 <span>=</span> <span>null</span>
+<span>const</span> str <span>=</span> <span>''</span>
+<span>const</span> bar1 <span>=</span> foo <span>||</span> <span>'default value'</span>
+<span>const</span> bar2 <span>=</span> foo <span>??</span> <span>'defualt value'</span>
+<span>const</span> bar3 <span>=</span> foo1 <span>??</span> <span>'defualt value'</span>
+<span>const</span> bar4 <span>=</span> str <span>??</span> <span>'default value'</span>
+
+console<span>.</span><span>log</span><span>(</span>bar1<span>,</span> bar2<span>,</span> bar3<span>,</span> bar4 <span>===</span> <span>''</span><span>)</span> <span>// 'default value', 'default value', 'default value', true</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h2 id="es12" tabindex="-1"> ES12</h2>
+<h3 id="finalizationregistry" tabindex="-1"> FinalizationRegistry</h3>
+<p>FinalizationRegistry 对象可以让你在对象被垃圾回收时请求一个回调</p>
+<div><pre><code><span>const</span> f <span>=</span> <span>new</span> <span>FinalizationRegistry</span><span>(</span><span>val</span> <span>=></span>
+  console<span>.</span><span>log</span><span>(</span><span>'注册在finalRegistry的对象, 某一个被销毁'</span><span>,</span> val<span>)</span>
+<span>)</span>
+<span>let</span> p1 <span>=</span> <span>{</span> <span>name</span><span>:</span> <span>'cherry'</span><span>,</span> <span>age</span><span>:</span> <span>18</span> <span>}</span>
+<span>let</span> p2 <span>=</span> <span>{</span> <span>name</span><span>:</span> <span>'sunny'</span><span>,</span> <span>age</span><span>:</span> <span>20</span> <span>}</span>
+
+f<span>.</span><span>register</span><span>(</span>p1<span>,</span> <span>'p1被注册了'</span><span>)</span>
+f<span>.</span><span>register</span><span>(</span>p2<span>,</span> <span>'p2被注册了'</span><span>)</span>
+
+p1 <span>=</span> <span>null</span>
+p2 <span>=</span> <span>null</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h3 id="weakref" tabindex="-1"> WeakRef</h3>
+<div><pre><code><span>const</span> f <span>=</span> <span>new</span> <span>FinalizationRegistry</span><span>(</span><span>val</span> <span>=></span>
+  console<span>.</span><span>log</span><span>(</span><span>'注册在finalRegistry的对象, 某一个被销毁'</span><span>,</span> val<span>)</span>
+<span>)</span>
+<span>let</span> p1 <span>=</span> <span>{</span> <span>name</span><span>:</span> <span>'cherry'</span><span>,</span> <span>age</span><span>:</span> <span>18</span> <span>}</span>
+<span>let</span> p2 <span>=</span> p1
+
+f<span>.</span><span>register</span><span>(</span>p1<span>,</span> <span>'p1被注册了'</span><span>)</span>
+
+p1 <span>=</span> <span>null</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p>以上代码中，当 p1 赋值为 null 时，在垃圾回收机制去回收对象时是不会去回收 p1 对象的，因为此时有个强引用 p2</p>
+<p>如果我们需要销毁可以使用 WeakSet</p>
+<div><pre><code><span>const</span> f <span>=</span> <span>new</span> <span>FinalizationRegistry</span><span>(</span><span>val</span> <span>=></span>
+  console<span>.</span><span>log</span><span>(</span><span>'注册在finalRegistry的对象, 某一个被销毁'</span><span>,</span> val<span>)</span>
+<span>)</span>
+<span>let</span> p1 <span>=</span> <span>{</span> <span>name</span><span>:</span> <span>'cherry'</span><span>,</span> <span>age</span><span>:</span> <span>18</span> <span>}</span>
+<span>let</span> p2 <span>=</span> <span>new</span> <span>WeakSet</span><span>(</span><span>)</span>
+p2<span>.</span><span>add</span><span>(</span>p1<span>)</span>
+<span>//console.log(p2) // WeakSet {{…}}</span>
+
+f<span>.</span><span>register</span><span>(</span>p1<span>,</span> <span>'p1被注册了'</span><span>)</span>
+
+p1 <span>=</span> <span>null</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p>在上述代码中使用 WeakSet 还是不合适，ES12 推出了 WeakRef</p>
+<div><pre><code><span>const</span> f <span>=</span> <span>new</span> <span>FinalizationRegistry</span><span>(</span><span>val</span> <span>=></span>
+  console<span>.</span><span>log</span><span>(</span><span>'注册在finalRegistry的对象, 某一个被销毁'</span><span>,</span> val<span>)</span>
+<span>)</span>
+<span>let</span> p1 <span>=</span> <span>{</span> <span>name</span><span>:</span> <span>'cherry'</span><span>,</span> <span>age</span><span>:</span> <span>18</span> <span>}</span>
+<span>let</span> p2 <span>=</span> <span>new</span> <span>WeakRef</span><span>(</span>p1<span>)</span>
+<span>// console.log(p2.deref()) // {name: 'cherry', age:18 }</span>
+
+f<span>.</span><span>register</span><span>(</span>p1<span>,</span> <span>'p1被注册了'</span><span>)</span>
+
+p1 <span>=</span> <span>null</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h3 id="logical-or-assignment" tabindex="-1"> Logical OR assignment (||=)</h3>
+<p>逻辑或赋值（x ||= y）运算仅在 x 为虚值时赋值</p>
+<div><pre><code><span>let</span> message <span>=</span> <span>'helle javascript'</span>
+message <span>=</span> message <span>||</span> <span>'default value'</span>
+message <span>||=</span> <span>'default value'</span>
+console<span>.</span><span>log</span><span>(</span>message<span>)</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div></div></div><h3 id="logical-and-assignment" tabindex="-1"> Logical AND assignment (&amp;&amp;=)</h3>
+<p>逻辑与赋值(x &amp;&amp;= y)操作符只在 x 为真时赋值。</p>
+<div><pre><code><span>let</span> a <span>=</span> <span>1</span>
+<span>let</span> b <span>=</span> <span>0</span>
+
+a <span>&amp;&amp;=</span> <span>2</span>
+console<span>.</span><span>log</span><span>(</span>a<span>)</span> <span>// 2</span>
+
+b <span>&amp;&amp;=</span> <span>2</span>
+console<span>.</span><span>log</span><span>(</span>b<span>)</span> <span>// 0</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h3 id="logical-nullish-assignment" tabindex="-1"> Logical nullish assignment</h3>
+<p>逻辑空赋值运算符 (x ??= y) 仅在 x 是 nullish (null 或 undefined) 时对其赋值</p>
+<div><pre><code><span>const</span> a <span>=</span> <span>{</span> <span>duration</span><span>:</span> <span>50</span> <span>}</span>
+
+a<span>.</span>duration <span>??=</span> <span>10</span>
+console<span>.</span><span>log</span><span>(</span>a<span>.</span>duration<span>)</span> <span>// 50</span>
+
+a<span>.</span>speed <span>??=</span> <span>25</span>
+console<span>.</span><span>log</span><span>(</span>a<span>.</span>speed<span>)</span> <span>// 25</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div>]]></content:encoded>
     </item>
   </channel>
 </rss>
