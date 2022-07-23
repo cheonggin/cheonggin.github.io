@@ -6,8 +6,8 @@
     <link>https://www.zhanggin.work/</link>
     <description>Gin's blog</description>
     <language>zh-CN</language>
-    <pubDate>Sun, 10 Jul 2022 14:07:08 GMT</pubDate>
-    <lastBuildDate>Sun, 10 Jul 2022 14:07:08 GMT</lastBuildDate>
+    <pubDate>Sat, 23 Jul 2022 02:42:37 GMT</pubDate>
+    <lastBuildDate>Sat, 23 Jul 2022 02:42:37 GMT</lastBuildDate>
     <generator>vuepress-plugin-feed2</generator>
     <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
     <category>config</category>
@@ -1796,6 +1796,489 @@ console<span>.</span><span>log</span><span>(</span>a<span>.</span>duration<span>
 a<span>.</span>speed <span>??=</span> <span>25</span>
 console<span>.</span><span>log</span><span>(</span>a<span>.</span>speed<span>)</span> <span>// 25</span>
 </code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div>]]></content:encoded>
+    </item>
+    <item>
+      <title>Promise</title>
+      <link>https://www.zhanggin.work/docs/20220723.html</link>
+      <guid>https://www.zhanggin.work/docs/20220723.html</guid>
+      <source url="https://www.zhanggin.work/rss.xml">Promise</source>
+      <category>前端</category>
+      <pubDate>Sat, 23 Jul 2022 00:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<h2 id="同步回调与异步回调" tabindex="-1"> 同步回调与异步回调</h2>
+<p>同步回调函数：在执行栈中执行，不会放入到事件队列中。比如：数组遍历相送的回调函数等</p>
+<p>异步回调函数：不会立即执行，会放入事件队列中以后再执行。比如：定时器回调、ajax 回调、Promise 成功或失败的回调等</p>
+<h2 id="promise" tabindex="-1"> Promise</h2>
+<p>Promise 是 JS 中异步编程的新方案，从语法上来说，Promise 是一个内置的构造函数，从功能上来说，Promise 的实例对象可以用来封装一个异步操作，并可以获取其成功或失败的值</p>
+<p>一个 Promise 必然处于以下几种状态之一：</p>
+<ul>
+<li>待定（pending）：初始状态，既没有被兑现，也没有被拒绝</li>
+<li>已兑现（fulfilled）：意味着操作成功完成</li>
+<li>已拒绝（rejected）：意味着操作失败</li>
+</ul>
+<p>每一个 Promise 实例在刚被 new 出来的那一刻，状态都是 pending</p>
+<p>new Promise 的时候，要传入一个回调函数，它是同步的回调，会立即在执行栈中执行，它被称为 executor，在 executor 中启动异步任务，如：ajax 请求、定时器等。</p>
+<p>executor 函数接收 2 个参数，它们都是函数，分别用形参 resolve、reject 接收。</p>
+<p>根据异步任务的结果做不同处理，如果异步任务成功了调用 resolve 函数会让 Promise 实例状态变为 fulfilled，同时指定成功的 value；如果异步任务失败了调用 reject 函数会让 Promise 实例状态变为 rejected，同时指定失败的 reason</p>
+<p>Promise 的优势：</p>
+<ol>
+<li>指定回调函数的方式更加灵活，比如 setTimeout 必须在启动异步任务前指定回调函数，promise：启动异步任务=&gt;返回 promise 对象=&gt;给 promise 对象绑定回调函数（甚至可以在异步任务结束后指定）</li>
+<li>支持链式调用，可以解决回调地狱问题，但不是最优的解决回调地狱方案，最优解决方案<code>async/await</code>（底层实际上依然使用 then 的链式调用）</li>
+</ol>
+<h3 id="promise-prototype-then" tabindex="-1"> Promise.prototype.then</h3>
+<p>通过 then 方法为 Promise 的实例指定成功、失败的回调函数，用来获取成功的 value、失败的 reason。then 方法所指定的成功的回调、失败的回调，都是异步的回调</p>
+<div><pre><code><span>const</span> p <span>=</span> <span>new</span> <span>Promise</span><span>(</span><span>(</span><span>resolve<span>,</span> reject</span><span>)</span> <span>=></span> <span>{</span>
+  console<span>.</span><span>log</span><span>(</span><span>'new Promise执行了'</span><span>)</span> <span>// 第1打印</span>
+
+  <span>setTimeout</span><span>(</span><span>(</span><span>)</span> <span>=></span> <span>{</span>
+    <span>resolve</span><span>(</span><span>100</span><span>)</span>
+    <span>// reject(-100)</span>
+  <span>}</span><span>,</span> <span>2000</span><span>)</span>
+<span>}</span><span>)</span>
+
+p<span>.</span><span>then</span><span>(</span>
+  <span>value</span> <span>=></span> console<span>.</span><span>log</span><span>(</span>value<span>)</span><span>,</span> <span>// 成功的异步回调</span>
+  <span>reason</span> <span>=></span> console<span>.</span><span>log</span><span>(</span>reason<span>)</span> <span>// 失败的异步回调</span>
+<span>)</span>
+
+console<span>.</span><span>log</span><span>(</span><span>'first'</span><span>)</span> <span>// 第2打印</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p>若一个 Promise 实例指定多个成功/失败的回调函数，则都会调用</p>
+<div><pre><code><span>const</span> p <span>=</span> <span>new</span> <span>Promise</span><span>(</span><span>(</span><span>resolve<span>,</span> reject</span><span>)</span> <span>=></span> <span>{</span>
+  console<span>.</span><span>log</span><span>(</span><span>'new Promise执行了'</span><span>)</span> <span>// 第1打印</span>
+  <span>setTimeout</span><span>(</span><span>(</span><span>)</span> <span>=></span> <span>{</span>
+    <span>resolve</span><span>(</span><span>100</span><span>)</span>
+  <span>}</span><span>,</span> <span>2000</span><span>)</span>
+<span>}</span><span>)</span>
+
+p<span>.</span><span>then</span><span>(</span>
+  <span>value</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'@1'</span><span>,</span> value<span>)</span><span>,</span> <span>// 成功的异步回调</span>
+  <span>reason</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'@1'</span><span>,</span> reason<span>)</span> <span>// 失败的异步回调</span>
+<span>)</span>
+p<span>.</span><span>then</span><span>(</span>
+  <span>value</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'@2'</span><span>,</span> value<span>)</span><span>,</span> <span>// 成功的异步回调</span>
+  <span>reason</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'@2'</span><span>,</span> reason<span>)</span> <span>// 失败的异步回调</span>
+<span>)</span>
+
+console<span>.</span><span>log</span><span>(</span><span>'first'</span><span>)</span> <span>// 第2打印</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p>then 方法会返回一个新的 Promise 实例对象</p>
+<div><pre><code><span>const</span> p <span>=</span> <span>new</span> <span>Promise</span><span>(</span><span>(</span><span>resolve<span>,</span> reject</span><span>)</span> <span>=></span> <span>{</span>
+  console<span>.</span><span>log</span><span>(</span><span>'new Promise执行了'</span><span>)</span>
+  <span>setTimeout</span><span>(</span><span>(</span><span>)</span> <span>=></span> <span>{</span>
+    <span>resolve</span><span>(</span><span>100</span><span>)</span>
+  <span>}</span><span>,</span> <span>2000</span><span>)</span>
+<span>}</span><span>)</span>
+
+<span>const</span> x <span>=</span> p<span>.</span><span>then</span><span>(</span>
+  <span>value</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'@1'</span><span>,</span> value<span>)</span><span>,</span> <span>// 成功的异步回调</span>
+  <span>reason</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'@1'</span><span>,</span> reason<span>)</span> <span>// 失败的异步回调</span>
+<span>)</span>
+
+console<span>.</span><span>log</span><span>(</span><span>'first'</span><span>)</span>
+console<span>.</span><span>log</span><span>(</span>x<span>)</span> <span>// Promise {&lt;pending>}</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p>then 方法返回的新的 Promise 实例的值和状态由 then 方法所指定的回调函数执行的结果决定</p>
+<ol>
+<li>如果 then 所指定的回调返回的是非 Promise 值<code>'a'</code>，那么新 Promise 实例状态为：fulfilled，成功的值为 value 为 a</li>
+<li>如果 then 所指定的回调返回的是一个 Promise 实例<code>p</code>，那么新 Promise 实例的状态值都与 p 一致</li>
+<li>如果 then 所指定的回调抛出异常，那么新 Promise 实例状态为 rejected，reason 为抛出的那个异常</li>
+</ol>
+<div><pre><code><span>const</span> p1 <span>=</span> <span>new</span> <span>Promise</span><span>(</span><span>(</span><span>resolve<span>,</span> reject</span><span>)</span> <span>=></span> <span>{</span>
+  <span>resolve</span><span>(</span><span>100</span><span>)</span>
+<span>}</span><span>)</span>
+
+p1<span>.</span><span>then</span><span>(</span>
+  <span>value</span> <span>=></span> <span>{</span>
+    console<span>.</span><span>log</span><span>(</span><span>'success1'</span><span>,</span> value<span>)</span>
+    <span>return</span> <span>'a'</span>
+  <span>}</span><span>,</span>
+  <span>reason</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'fail1'</span><span>,</span> reason<span>)</span>
+<span>)</span><span>.</span><span>then</span><span>(</span>
+  <span>value</span> <span>=></span> <span>{</span>
+    console<span>.</span><span>log</span><span>(</span><span>'success2'</span><span>,</span> value<span>)</span>
+  <span>}</span><span>,</span>
+  <span>reason</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'fail2'</span><span>,</span> reason<span>)</span>
+<span>)</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h3 id="promise-prototype-catch" tabindex="-1"> Promise.prototype.catch</h3>
+<p>catch 方法是 then 方法的语法糖，相当于：<code>then(null,onRejected)</code></p>
+<p>promise 的错误穿透：当使用 promise 的 then 链式调用时，可以在最后用 catch 指定一个失败的回调，前面任何操作出了错误，都会传到最后失败的回调中处理</p>
+<p>如果不存在 then 的链式调用，就不需要考虑 then 的错误穿透</p>
+<h3 id="promise-prototype-finally" tabindex="-1"> Promise.prototype.finally</h3>
+<p>finally 方法返回一个 Promise。在 promise 结束时，无论结果是 fulfilled 或者是 rejected，都会执行指定的回调函数</p>
+<h3 id="promise-resolve" tabindex="-1"> Promise.resolve</h3>
+<p>用于快速返回一个状态为 fufilled 或 rejected 的 Promise 的实例对象</p>
+<div><pre><code><span>const</span> p0 <span>=</span> Promise<span>.</span><span>reject</span><span>(</span><span>-</span><span>100</span><span>)</span>
+<span>const</span> p <span>=</span> Promise<span>.</span><span>resolve</span><span>(</span>p0<span>)</span>
+p<span>.</span><span>then</span><span>(</span>
+  <span>value</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'success'</span><span>,</span> value<span>)</span><span>,</span>
+  <span>reason</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'faile'</span><span>,</span> reason<span>)</span> <span>// 'faile' -100</span>
+<span>)</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h3 id="promise-reject" tabindex="-1"> Promise.reject</h3>
+<p>用于快速返回一个状态为 rejected 的 Promise 的实例对象</p>
+<h3 id="promise-all" tabindex="-1"> Promise.all</h3>
+<p><code>Promise.all</code>方法接收一个参数为 n 个 Promise 实例的数组，返回一个新的 Pomise 实例，只有所有的 promise 都成功才成功，只要有一个失败就直接失败</p>
+<h3 id="promise-any" tabindex="-1"> Promise.any</h3>
+<p><code>Promise.any</code>接收一个 Promise 可迭代对象，只要其中的一个 promise 成功，就返回那个已经成功的 promise 。</p>
+<p>如果可迭代对象中没有一个 promise 成功（即所有的 promises 都失败/拒绝），就返回一个失败的 promise 和 AggregateError 类型的实例，它是 Error 的一个子类，用于把单一的错误集合在一起。本质上，这个方法和 Promise.all() 是相反的。</p>
+<h3 id="promise-allsettled" tabindex="-1"> Promise.allSettled</h3>
+<p><code>Promise.allSettled</code>方法返回一个在所有给定的 promise 都已经 fulfilled 或 rejected 后的 promise，并带有一个对象数组，每个对象表示对应的 promise 结果</p>
+<div><pre><code><span>const</span> p1 <span>=</span> Promise<span>.</span><span>resolve</span><span>(</span><span>'a'</span><span>)</span>
+<span>const</span> p2 <span>=</span> <span>new</span> <span>Promise</span><span>(</span><span>(</span><span>resolve<span>,</span> reject</span><span>)</span> <span>=></span> <span>{</span>
+  <span>setTimeout</span><span>(</span><span>(</span><span>)</span> <span>=></span> <span>{</span>
+    <span>reject</span><span>(</span><span>'b'</span><span>)</span>
+  <span>}</span><span>,</span> <span>500</span><span>)</span>
+<span>}</span><span>)</span>
+<span>const</span> p3 <span>=</span> <span>new</span> <span>Promise</span><span>(</span><span>(</span><span>resolve<span>,</span> reject</span><span>)</span> <span>=></span> <span>{</span>
+  <span>setTimeout</span><span>(</span><span>(</span><span>)</span> <span>=></span> <span>{</span>
+    <span>reject</span><span>(</span><span>'c'</span><span>)</span>
+  <span>}</span><span>,</span> <span>2000</span><span>)</span>
+<span>}</span><span>)</span>
+
+Promise<span>.</span><span>allSettled</span><span>(</span><span>[</span>p1<span>,</span> p2<span>,</span> p3<span>]</span><span>)</span><span>.</span><span>then</span><span>(</span>
+  <span>value</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'success'</span><span>,</span> value<span>)</span><span>,</span>
+  <span>reason</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'fail'</span><span>,</span> reason<span>)</span>
+<span>)</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h3 id="promise-race" tabindex="-1"> Promise.race</h3>
+<p><code>Promise.race</code>方法接收一个参数为 n 个 Promise 实例的数组，返回一个新的 Promise 实例，以最先出结果的 promise 为准</p>
+<div><pre><code><span>const</span> p1 <span>=</span> Promise<span>.</span><span>resolve</span><span>(</span><span>'a'</span><span>)</span>
+<span>const</span> p2 <span>=</span> <span>new</span> <span>Promise</span><span>(</span><span>(</span><span>resolve<span>,</span> reject</span><span>)</span> <span>=></span> <span>{</span>
+  <span>setTimeout</span><span>(</span><span>(</span><span>)</span> <span>=></span> <span>{</span>
+    <span>reject</span><span>(</span><span>'b'</span><span>)</span>
+  <span>}</span><span>,</span> <span>500</span><span>)</span>
+<span>}</span><span>)</span>
+<span>const</span> p3 <span>=</span> <span>new</span> <span>Promise</span><span>(</span><span>(</span><span>resolve<span>,</span> reject</span><span>)</span> <span>=></span> <span>{</span>
+  <span>setTimeout</span><span>(</span><span>(</span><span>)</span> <span>=></span> <span>{</span>
+    <span>reject</span><span>(</span><span>'c'</span><span>)</span>
+  <span>}</span><span>,</span> <span>2000</span><span>)</span>
+<span>}</span><span>)</span>
+
+Promise<span>.</span><span>race</span><span>(</span><span>[</span>p1<span>,</span> p2<span>,</span> p3<span>]</span><span>)</span><span>.</span><span>then</span><span>(</span>
+  <span>value</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'success'</span><span>,</span> value<span>)</span><span>,</span>
+  <span>reason</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'fail'</span><span>,</span> reason<span>)</span>
+<span>)</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h2 id="手写-promise" tabindex="-1"> 手写 Promise</h2>
+<h3 id="规范" tabindex="-1"> 规范</h3>
+<p>参考<a href="https://promisesaplus.com/" target="_blank" rel="noopener noreferrer">promiseA+规范</a></p>
+<h3 id="结构设计" tabindex="-1"> 结构设计</h3>
+<ul>
+<li>promise 初始状态为：pending</li>
+<li>promise 执行完 resolve 时状态为：fufilled</li>
+<li>promise 执行完 reject 时状态为：rejected</li>
+</ul>
+<div><pre><code><span>class</span> <span>MyPromise</span> <span>{</span>
+  <span>constructor</span><span>(</span><span>executor</span><span>)</span> <span>{</span>
+    <span>this</span><span>.</span>status <span>=</span> <span>'pending'</span>
+    <span>this</span><span>.</span>value <span>=</span> <span>undefined</span>
+    <span>this</span><span>.</span>reason <span>=</span> <span>undefined</span>
+
+    <span>const</span> <span>resolve</span> <span>=</span> <span>value</span> <span>=></span> <span>{</span>
+      <span>if</span> <span>(</span><span>this</span><span>.</span>status <span>===</span> <span>'pending'</span><span>)</span> <span>{</span>
+        <span>this</span><span>.</span>status <span>=</span> <span>'fufilled'</span>
+        <span>this</span><span>.</span>value <span>=</span> value
+      <span>}</span>
+    <span>}</span>
+    <span>const</span> <span>reject</span> <span>=</span> <span>reason</span> <span>=></span> <span>{</span>
+      <span>if</span> <span>(</span><span>this</span><span>.</span>status <span>===</span> <span>'pending'</span><span>)</span> <span>{</span>
+        <span>this</span><span>.</span>status <span>=</span> <span>'rejected'</span>
+        <span>this</span><span>.</span>reason <span>=</span> reason
+      <span>}</span>
+    <span>}</span>
+
+    <span>executor</span><span>(</span>resolve<span>,</span> reject<span>)</span>
+  <span>}</span>
+<span>}</span>
+<span>const</span> p <span>=</span> <span>new</span> <span>MyPromise</span><span>(</span><span>(</span><span>resolve<span>,</span> reject</span><span>)</span> <span>=></span> <span>{</span>
+  <span>reject</span><span>(</span><span>-</span><span>100</span><span>)</span>
+  <span>resolve</span><span>(</span><span>123</span><span>)</span>
+<span>}</span><span>)</span>
+console<span>.</span><span>log</span><span>(</span>p<span>)</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h3 id="then-方法的实现" tabindex="-1"> then 方法的实现</h3>
+<div><pre><code><span>class</span> <span>MyPromise</span> <span>{</span>
+  <span>constructor</span><span>(</span><span>executor</span><span>)</span> <span>{</span>
+    <span>this</span><span>.</span>status <span>=</span> <span>'pending'</span>
+    <span>this</span><span>.</span>value <span>=</span> <span>undefined</span>
+    <span>this</span><span>.</span>reason <span>=</span> <span>undefined</span>
+
+    <span>const</span> <span>resolve</span> <span>=</span> <span>value</span> <span>=></span> <span>{</span>
+      <span>if</span> <span>(</span><span>this</span><span>.</span>status <span>===</span> <span>'pending'</span><span>)</span> <span>{</span>
+        <span>this</span><span>.</span>status <span>=</span> <span>'fufilled'</span>
+
+        <span>queueMicrotask</span><span>(</span><span>(</span><span>)</span> <span>=></span> <span>{</span>
+          <span>this</span><span>.</span>value <span>=</span> value
+          <span>this</span><span>.</span><span>onFufilled</span><span>(</span><span>this</span><span>.</span>value<span>)</span>
+        <span>}</span><span>)</span>
+      <span>}</span>
+    <span>}</span>
+    <span>const</span> <span>reject</span> <span>=</span> <span>reason</span> <span>=></span> <span>{</span>
+      <span>if</span> <span>(</span><span>this</span><span>.</span>status <span>===</span> <span>'pending'</span><span>)</span> <span>{</span>
+        <span>this</span><span>.</span>status <span>=</span> <span>'rejected'</span>
+
+        <span>queueMicrotask</span><span>(</span><span>(</span><span>)</span> <span>=></span> <span>{</span>
+          <span>this</span><span>.</span>reason <span>=</span> reason
+          <span>this</span><span>.</span><span>onRejected</span><span>(</span><span>this</span><span>.</span>reason<span>)</span>
+        <span>}</span><span>)</span>
+      <span>}</span>
+    <span>}</span>
+
+    <span>executor</span><span>(</span>resolve<span>,</span> reject<span>)</span>
+  <span>}</span>
+
+  <span>then</span><span>(</span><span>onFufilled<span>,</span> onRejected</span><span>)</span> <span>{</span>
+    <span>this</span><span>.</span>onFufilled <span>=</span> onFufilled
+    <span>this</span><span>.</span>onRejected <span>=</span> onRejected
+  <span>}</span>
+<span>}</span>
+<span>const</span> p <span>=</span> <span>new</span> <span>MyPromise</span><span>(</span><span>(</span><span>resolve<span>,</span> reject</span><span>)</span> <span>=></span> <span>{</span>
+  <span>reject</span><span>(</span><span>-</span><span>100</span><span>)</span>
+  <span>resolve</span><span>(</span><span>123</span><span>)</span>
+<span>}</span><span>)</span>
+
+p<span>.</span><span>then</span><span>(</span>
+  <span>value</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'success'</span><span>,</span> value<span>)</span><span>,</span>
+  <span>reason</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'fail'</span><span>,</span> reason<span>)</span>
+<span>)</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h4 id="解决-then-方法多次调用被覆盖的问题" tabindex="-1"> 解决 then 方法多次调用被覆盖的问题</h4>
+<div><pre><code><span>class</span> <span>MyPromise</span> <span>{</span>
+  <span>constructor</span><span>(</span><span>executor</span><span>)</span> <span>{</span>
+    <span>this</span><span>.</span>status <span>=</span> <span>'pending'</span>
+    <span>this</span><span>.</span>value <span>=</span> <span>undefined</span>
+    <span>this</span><span>.</span>reason <span>=</span> <span>undefined</span>
+    <span>this</span><span>.</span>onFufilledFns <span>=</span> <span>[</span><span>]</span>
+    <span>this</span><span>.</span>onRejectedFns <span>=</span> <span>[</span><span>]</span>
+
+    <span>const</span> <span>resolve</span> <span>=</span> <span>value</span> <span>=></span> <span>{</span>
+      <span>if</span> <span>(</span><span>this</span><span>.</span>status <span>===</span> <span>'pending'</span><span>)</span> <span>{</span>
+        <span>this</span><span>.</span>status <span>=</span> <span>'fufilled'</span>
+
+        <span>queueMicrotask</span><span>(</span><span>(</span><span>)</span> <span>=></span> <span>{</span>
+          <span>this</span><span>.</span>value <span>=</span> value
+          <span>this</span><span>.</span>onFufilledFns<span>.</span><span>forEach</span><span>(</span><span>fn</span> <span>=></span> <span>fn</span><span>(</span><span>this</span><span>.</span>value<span>)</span><span>)</span>
+        <span>}</span><span>)</span>
+      <span>}</span>
+    <span>}</span>
+    <span>const</span> <span>reject</span> <span>=</span> <span>reason</span> <span>=></span> <span>{</span>
+      <span>if</span> <span>(</span><span>this</span><span>.</span>status <span>===</span> <span>'pending'</span><span>)</span> <span>{</span>
+        <span>this</span><span>.</span>status <span>=</span> <span>'rejected'</span>
+
+        <span>queueMicrotask</span><span>(</span><span>(</span><span>)</span> <span>=></span> <span>{</span>
+          <span>this</span><span>.</span>reason <span>=</span> reason
+          <span>this</span><span>.</span>onRejectedFns<span>.</span><span>forEach</span><span>(</span><span>fn</span> <span>=></span> <span>fn</span><span>(</span><span>this</span><span>.</span>reason<span>)</span><span>)</span>
+        <span>}</span><span>)</span>
+      <span>}</span>
+    <span>}</span>
+
+    <span>executor</span><span>(</span>resolve<span>,</span> reject<span>)</span>
+  <span>}</span>
+
+  <span>then</span><span>(</span><span>onFufilled<span>,</span> onRejected</span><span>)</span> <span>{</span>
+    <span>this</span><span>.</span>onFufilledFns<span>.</span><span>push</span><span>(</span>onFufilled<span>)</span>
+    <span>this</span><span>.</span>onRejectedFns<span>.</span><span>push</span><span>(</span>onRejected<span>)</span>
+  <span>}</span>
+<span>}</span>
+
+<span>const</span> p <span>=</span> <span>new</span> <span>MyPromise</span><span>(</span><span>(</span><span>resolve<span>,</span> reject</span><span>)</span> <span>=></span> <span>{</span>
+  <span>resolve</span><span>(</span><span>123</span><span>)</span>
+  <span>reject</span><span>(</span><span>-</span><span>100</span><span>)</span>
+<span>}</span><span>)</span>
+
+p<span>.</span><span>then</span><span>(</span>
+  <span>value</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'success1'</span><span>,</span> value<span>)</span><span>,</span>
+  <span>reason</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'fail1'</span><span>,</span> reason<span>)</span>
+<span>)</span>
+
+p<span>.</span><span>then</span><span>(</span>
+  <span>value</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'success2'</span><span>,</span> value<span>)</span><span>,</span>
+  <span>reason</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'fail2'</span><span>,</span> reason<span>)</span>
+<span>)</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h4 id="解决-promise-状态确定后再次调用-then-的问题" tabindex="-1"> 解决 Promise 状态确定后再次调用 then 的问题</h4>
+<p>先看原生 promise 确定状态后再次调用 then 的情况</p>
+<div><pre><code><span>const</span> p <span>=</span> <span>new</span> <span>Promise</span><span>(</span><span>(</span><span>resolve<span>,</span> reject</span><span>)</span> <span>=></span> <span>{</span>
+  <span>reject</span><span>(</span><span>-</span><span>100</span><span>)</span>
+  <span>resolve</span><span>(</span><span>123</span><span>)</span>
+<span>}</span><span>)</span>
+
+p<span>.</span><span>then</span><span>(</span>
+  <span>value</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'success1'</span><span>,</span> value<span>)</span><span>,</span>
+  <span>reason</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'fail1'</span><span>,</span> reason<span>)</span>
+<span>)</span>
+
+p<span>.</span><span>then</span><span>(</span>
+  <span>value</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'success2'</span><span>,</span> value<span>)</span><span>,</span>
+  <span>reason</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'fail2'</span><span>,</span> reason<span>)</span>
+<span>)</span>
+
+<span>setTimeout</span><span>(</span><span>(</span><span>)</span> <span>=></span> <span>{</span>
+  p<span>.</span><span>then</span><span>(</span>
+    <span>value</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'success3'</span><span>,</span> value<span>)</span><span>,</span>
+    <span>reason</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'fail3'</span><span>,</span> reason<span>)</span>
+  <span>)</span>
+<span>}</span><span>,</span> <span>2000</span><span>)</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><p>当使用 MyPromise 时，发现在 setTimeout 中使用 then 方法未被执行，这是因为 setTimeout 中的 onFufilled 与 onRejected 函数未被添加到<code>this.onFufilledFns</code>与<code>this.onRejectedFns</code>中</p>
+<div><pre><code><span>class</span> <span>MyPromise</span> <span>{</span>
+  <span>constructor</span><span>(</span><span>executor</span><span>)</span> <span>{</span>
+    <span>this</span><span>.</span>status <span>=</span> <span>'pending'</span>
+    <span>this</span><span>.</span>value <span>=</span> <span>undefined</span>
+    <span>this</span><span>.</span>reason <span>=</span> <span>undefined</span>
+    <span>this</span><span>.</span>onFufilledFns <span>=</span> <span>[</span><span>]</span>
+    <span>this</span><span>.</span>onRejectedFns <span>=</span> <span>[</span><span>]</span>
+
+    <span>const</span> <span>resolve</span> <span>=</span> <span>value</span> <span>=></span> <span>{</span>
+      <span>if</span> <span>(</span><span>this</span><span>.</span>status <span>===</span> <span>'pending'</span><span>)</span> <span>{</span>
+        <span>queueMicrotask</span><span>(</span><span>(</span><span>)</span> <span>=></span> <span>{</span>
+          <span>if</span> <span>(</span><span>this</span><span>.</span>status <span>!==</span> <span>'pending'</span><span>)</span> <span>return</span>
+
+          <span>this</span><span>.</span>status <span>=</span> <span>'fufilled'</span>
+          <span>this</span><span>.</span>value <span>=</span> value
+          <span>this</span><span>.</span>onFufilledFns<span>.</span><span>forEach</span><span>(</span><span>fn</span> <span>=></span> <span>fn</span><span>(</span><span>this</span><span>.</span>value<span>)</span><span>)</span>
+        <span>}</span><span>)</span>
+      <span>}</span>
+    <span>}</span>
+    <span>const</span> <span>reject</span> <span>=</span> <span>reason</span> <span>=></span> <span>{</span>
+      <span>if</span> <span>(</span><span>this</span><span>.</span>status <span>===</span> <span>'pending'</span><span>)</span> <span>{</span>
+        <span>queueMicrotask</span><span>(</span><span>(</span><span>)</span> <span>=></span> <span>{</span>
+          <span>if</span> <span>(</span><span>this</span><span>.</span>status <span>!==</span> <span>'pending'</span><span>)</span> <span>return</span>
+
+          <span>this</span><span>.</span>status <span>=</span> <span>'rejected'</span>
+          <span>this</span><span>.</span>reason <span>=</span> reason
+          <span>this</span><span>.</span>onRejectedFns<span>.</span><span>forEach</span><span>(</span><span>fn</span> <span>=></span> <span>fn</span><span>(</span><span>this</span><span>.</span>reason<span>)</span><span>)</span>
+        <span>}</span><span>)</span>
+      <span>}</span>
+    <span>}</span>
+
+    <span>executor</span><span>(</span>resolve<span>,</span> reject<span>)</span>
+  <span>}</span>
+
+  <span>then</span><span>(</span><span>onFufilled<span>,</span> onRejected</span><span>)</span> <span>{</span>
+    <span>if</span> <span>(</span><span>this</span><span>.</span>status <span>===</span> <span>'fufilled'</span> <span>&amp;&amp;</span> onFufilled<span>)</span> <span>{</span>
+      <span>onFufilled</span><span>(</span><span>this</span><span>.</span>value<span>)</span>
+    <span>}</span>
+
+    <span>if</span> <span>(</span><span>this</span><span>.</span>status <span>===</span> <span>'rejected'</span> <span>&amp;&amp;</span> onRejected<span>)</span> <span>{</span>
+      <span>onRejected</span><span>(</span><span>this</span><span>.</span>reason<span>)</span>
+    <span>}</span>
+
+    <span>if</span> <span>(</span><span>this</span><span>.</span>status <span>===</span> <span>'pending'</span><span>)</span> <span>{</span>
+      <span>this</span><span>.</span>onFufilledFns<span>.</span><span>push</span><span>(</span>onFufilled<span>)</span>
+      <span>this</span><span>.</span>onRejectedFns<span>.</span><span>push</span><span>(</span>onRejected<span>)</span>
+    <span>}</span>
+  <span>}</span>
+<span>}</span>
+
+<span>const</span> p <span>=</span> <span>new</span> <span>MyPromise</span><span>(</span><span>(</span><span>resolve<span>,</span> reject</span><span>)</span> <span>=></span> <span>{</span>
+  <span>reject</span><span>(</span><span>-</span><span>100</span><span>)</span>
+  <span>resolve</span><span>(</span><span>123</span><span>)</span>
+<span>}</span><span>)</span>
+console<span>.</span><span>log</span><span>(</span>p<span>)</span>
+p<span>.</span><span>then</span><span>(</span>
+  <span>value</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'success1'</span><span>,</span> value<span>)</span><span>,</span>
+  <span>reason</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'fail1'</span><span>,</span> reason<span>)</span>
+<span>)</span>
+
+p<span>.</span><span>then</span><span>(</span>
+  <span>value</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'success2'</span><span>,</span> value<span>)</span><span>,</span>
+  <span>reason</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'fail2'</span><span>,</span> reason<span>)</span>
+<span>)</span>
+
+<span>setTimeout</span><span>(</span><span>(</span><span>)</span> <span>=></span> <span>{</span>
+  p<span>.</span><span>then</span><span>(</span>
+    <span>value</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'success3'</span><span>,</span> value<span>)</span><span>,</span>
+    <span>reason</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'fail3'</span><span>,</span> reason<span>)</span>
+  <span>)</span>
+<span>}</span><span>,</span> <span>2000</span><span>)</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div><h4 id="then-方法的链式调用" tabindex="-1"> then 方法的链式调用</h4>
+<div><pre><code><span>function</span> <span>execFnCatchError</span><span>(</span><span>fn<span>,</span> value<span>,</span> resolve<span>,</span> reject</span><span>)</span> <span>{</span>
+  <span>try</span> <span>{</span>
+    <span>const</span> result <span>=</span> <span>fn</span><span>(</span>value<span>)</span>
+    <span>resolve</span><span>(</span>result<span>)</span>
+  <span>}</span> <span>catch</span> <span>(</span>error<span>)</span> <span>{</span>
+    <span>reject</span><span>(</span>error<span>)</span>
+  <span>}</span>
+<span>}</span>
+
+<span>class</span> <span>MyPromise</span> <span>{</span>
+  <span>constructor</span><span>(</span><span>executor</span><span>)</span> <span>{</span>
+    <span>this</span><span>.</span>status <span>=</span> <span>'pending'</span>
+    <span>this</span><span>.</span>value <span>=</span> <span>undefined</span>
+    <span>this</span><span>.</span>reason <span>=</span> <span>undefined</span>
+    <span>this</span><span>.</span>onFufilledFns <span>=</span> <span>[</span><span>]</span>
+    <span>this</span><span>.</span>onRejectedFns <span>=</span> <span>[</span><span>]</span>
+
+    <span>const</span> <span>resolve</span> <span>=</span> <span>value</span> <span>=></span> <span>{</span>
+      <span>if</span> <span>(</span><span>this</span><span>.</span>status <span>===</span> <span>'pending'</span><span>)</span> <span>{</span>
+        <span>queueMicrotask</span><span>(</span><span>(</span><span>)</span> <span>=></span> <span>{</span>
+          <span>if</span> <span>(</span><span>this</span><span>.</span>status <span>!==</span> <span>'pending'</span><span>)</span> <span>return</span>
+
+          <span>this</span><span>.</span>status <span>=</span> <span>'fufilled'</span>
+          <span>this</span><span>.</span>value <span>=</span> value
+          <span>this</span><span>.</span>onFufilledFns<span>.</span><span>forEach</span><span>(</span><span>fn</span> <span>=></span> <span>fn</span><span>(</span><span>this</span><span>.</span>value<span>)</span><span>)</span>
+        <span>}</span><span>)</span>
+      <span>}</span>
+    <span>}</span>
+    <span>const</span> <span>reject</span> <span>=</span> <span>reason</span> <span>=></span> <span>{</span>
+      <span>if</span> <span>(</span><span>this</span><span>.</span>status <span>===</span> <span>'pending'</span><span>)</span> <span>{</span>
+        <span>queueMicrotask</span><span>(</span><span>(</span><span>)</span> <span>=></span> <span>{</span>
+          <span>if</span> <span>(</span><span>this</span><span>.</span>status <span>!==</span> <span>'pending'</span><span>)</span> <span>return</span>
+
+          <span>this</span><span>.</span>status <span>=</span> <span>'rejected'</span>
+          <span>this</span><span>.</span>reason <span>=</span> reason
+          <span>this</span><span>.</span>onRejectedFns<span>.</span><span>forEach</span><span>(</span><span>fn</span> <span>=></span> <span>fn</span><span>(</span><span>this</span><span>.</span>reason<span>)</span><span>)</span>
+        <span>}</span><span>)</span>
+      <span>}</span>
+    <span>}</span>
+
+    <span>executor</span><span>(</span>resolve<span>,</span> reject<span>)</span>
+  <span>}</span>
+
+  <span>then</span><span>(</span><span>onFufilled<span>,</span> onRejected</span><span>)</span> <span>{</span>
+    <span>return</span> <span>new</span> <span>MyPromise</span><span>(</span><span>(</span><span>resolve<span>,</span> reject</span><span>)</span> <span>=></span> <span>{</span>
+      <span>if</span> <span>(</span><span>this</span><span>.</span>status <span>===</span> <span>'fufilled'</span> <span>&amp;&amp;</span> onFufilled<span>)</span> <span>{</span>
+        <span>execFnCatchError</span><span>(</span>onFufilled<span>,</span> <span>this</span><span>.</span>value<span>,</span> resolve<span>,</span> reject<span>)</span>
+      <span>}</span>
+
+      <span>if</span> <span>(</span><span>this</span><span>.</span>status <span>===</span> <span>'rejected'</span> <span>&amp;&amp;</span> onRejected<span>)</span> <span>{</span>
+        <span>execFnCatchError</span><span>(</span>onRejected<span>,</span> <span>this</span><span>.</span>reason<span>,</span> resolve<span>,</span> reject<span>)</span>
+      <span>}</span>
+
+      <span>if</span> <span>(</span><span>this</span><span>.</span>status <span>===</span> <span>'pending'</span><span>)</span> <span>{</span>
+        <span>this</span><span>.</span>onFufilledFns<span>.</span><span>push</span><span>(</span><span>(</span><span>)</span> <span>=></span> <span>{</span>
+          <span>execFnCatchError</span><span>(</span>onFufilled<span>,</span> <span>this</span><span>.</span>value<span>,</span> resolve<span>,</span> reject<span>)</span>
+        <span>}</span><span>)</span>
+        <span>this</span><span>.</span>onRejectedFns<span>.</span><span>push</span><span>(</span><span>(</span><span>)</span> <span>=></span> <span>{</span>
+          <span>execFnCatchError</span><span>(</span>onRejected<span>,</span> <span>this</span><span>.</span>reason<span>,</span> resolve<span>,</span> reject<span>)</span>
+        <span>}</span><span>)</span>
+      <span>}</span>
+    <span>}</span><span>)</span>
+  <span>}</span>
+<span>}</span>
+
+<span>const</span> p <span>=</span> <span>new</span> <span>MyPromise</span><span>(</span><span>(</span><span>resolve<span>,</span> reject</span><span>)</span> <span>=></span> <span>{</span>
+  <span>resolve</span><span>(</span><span>123</span><span>)</span>
+  <span>reject</span><span>(</span><span>-</span><span>100</span><span>)</span>
+<span>}</span><span>)</span>
+console<span>.</span><span>log</span><span>(</span>p<span>)</span>
+p<span>.</span><span>then</span><span>(</span>
+  <span>value</span> <span>=></span> <span>{</span>
+    console<span>.</span><span>log</span><span>(</span><span>'success1'</span><span>,</span> value<span>)</span>
+    <span>return</span> <span>'success~~~~~'</span>
+  <span>}</span><span>,</span>
+  <span>reason</span> <span>=></span> <span>{</span>
+    console<span>.</span><span>log</span><span>(</span><span>'fail1'</span><span>,</span> reason<span>)</span>
+    <span>return</span> <span>123</span>
+  <span>}</span>
+<span>)</span><span>.</span><span>then</span><span>(</span>
+  <span>value</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'success then'</span><span>,</span> value<span>)</span><span>,</span>
+  <span>reason</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'fail then'</span><span>,</span> reason<span>)</span>
+<span>)</span>
+
+p<span>.</span><span>then</span><span>(</span>
+  <span>value</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'success2'</span><span>,</span> value<span>)</span><span>,</span>
+  <span>reason</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'fail2'</span><span>,</span> reason<span>)</span>
+<span>)</span>
+
+<span>setTimeout</span><span>(</span><span>(</span><span>)</span> <span>=></span> <span>{</span>
+  p<span>.</span><span>then</span><span>(</span>
+    <span>value</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'success3'</span><span>,</span> value<span>)</span><span>,</span>
+    <span>reason</span> <span>=></span> console<span>.</span><span>log</span><span>(</span><span>'fail3'</span><span>,</span> reason<span>)</span>
+  <span>)</span>
+<span>}</span><span>,</span> <span>2000</span><span>)</span>
+</code></pre><div aria-hidden="true"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div></div>]]></content:encoded>
     </item>
   </channel>
 </rss>
